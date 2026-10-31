@@ -30,7 +30,9 @@ public struct FolderPicker: View {
             FolderPickerList(repository: repository, folder: .root)
                 .navigationDestination(for: RemotePath.self) { folder in
                     FolderPickerList(repository: repository, folder: folder)
+                        .safeAreaInset(edge: .top) { header }
                 }
+                .safeAreaInset(edge: .top) { header }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel", action: onCancel)
@@ -41,7 +43,18 @@ public struct FolderPicker: View {
                     }
                 }
         }
-        .navigationTitle(title)
+    }
+
+    private var header: some View {
+        Text(title)
+            .font(.headline)
+            .lineLimit(2)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .padding(.horizontal)
+            .background(.bar)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 

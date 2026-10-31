@@ -1,0 +1,29 @@
+Plume is a light, fast app for the files on your Nextcloud server. It opens folders instantly, finds any file as you type, and puts your files in the Files app, Finder and Spotlight, without the weight of a full sync client.
+
+INSTANT
+• Folders open at once from a local copy of the file list, then refresh in the background.
+• Search the whole account as you type, ignoring case and accents: "resume" finds "Résumé.pdf".
+• Find files from Spotlight on iPhone, iPad and Mac.
+
+EVERYWHERE YOU WORK
+• Your Nextcloud appears in the Files app and in Finder, next to iCloud Drive, with thumbnails.
+• Files download when you open them; edits made in any app are uploaded.
+• Save to Plume from any app: the share sheet, "Save to Files", "Open in…", or drag and drop on the Mac.
+
+OFFLINE
+• Keep files or whole folders on your device. They stay up to date and open without a connection.
+• Uploads go through an outbox: if the connection drops, they are sent later, and nothing is ever overwritten.
+
+EVERYTHING YOU EXPECT
+• Quick Look for PDFs, photos, videos, audio and Office documents.
+• Public links with a password and an expiry date, and sharing with people on your server.
+• Earlier versions of a file, deleted files, favorites, rename and move.
+
+PRIVATE BY DESIGN
+• Plume talks only to your server. No account with us, no analytics, no ads, no tracking.
+• You sign in through your Nextcloud in the browser, two-factor authentication included. Plume gets its own app password, which you can revoke at any time and which is revoked when you sign out.
+• Free and open source (GPL-3.0).
+
+Plume needs a Nextcloud server: your own, or one from a hosting provider.
+
+Plume is an independent app, not affiliated with or endorsed by Nextcloud GmbH. Nextcloud is a trademark of Nextcloud GmbH.

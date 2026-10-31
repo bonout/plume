@@ -58,6 +58,15 @@ final class AppModel {
     }
 
     init() {
+        #if DEBUG
+        if DebugLaunch.resetAccount {
+            AccountStore.remove()
+            MetadataStore.removeAllDatabases()
+            AppGroup.defaults.removeObject(forKey: "indexComplete")
+            AppGroup.defaults.removeObject(forKey: "lastServer")
+            lastServer = ""
+        }
+        #endif
         if let credentials = AccountStore.load() { activate(credentials) }
         #if DEBUG
         signInForTesting()

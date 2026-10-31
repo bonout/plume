@@ -1,0 +1,1 @@
+Vos fichiers Nextcloud, tout de suite : les dossiers s'ouvrent instantanément, la recherche trouve tout dès la frappe, et tout apparaît dans Fichiers, le Finder et Spotlight.

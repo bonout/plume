@@ -232,3 +232,33 @@ targets:
         "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
         TARGETED_DEVICE_FAMILY: "1,2"
         ENABLE_HARDENED_RUNTIME: NO
+
+  PlumeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: PlumeiOS
+    settings:
+      base:
+        TEST_TARGET_NAME: PlumeiOS
+        TARGETED_DEVICE_FAMILY: "1,2"
+        "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
+
+schemes:
+  PlumeiOS:
+    build:
+      targets:
+        PlumeiOS: all
+    test:
+      targets:
+        - PlumeUITests
+    archive:
+      config: Release
+  PlumeMac:
+    build:
+      targets:
+        PlumeMac: all
+    archive:
+      config: Release
