@@ -26,14 +26,18 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
             observer.value.finishEnumerating(upTo: nil)
             return
         }
+        let offset = Self.offset(of: page)
         Task {
             do {
-                let listing = try await repository.refresh(folder)
-                let items = listing.children
+                if offset == 0 { try await repository.refresh(folder) }
+                let batch = repository.store.children(of: folder, limit: Self.pageSize, offset: offset)
+                let items = batch
                     .filter { !FileProviderExtension.isExcluded($0.name) }
                     .map { owner.providerItem($0, in: repository) }
                 observer.value.didEnumerate(items)
-                observer.value.finishEnumerating(upTo: nil)
+                let next = batch.count == Self.pageSize
+                    ? NSFileProviderPage(Data(String(offset + Self.pageSize).utf8)) : nil
+                observer.value.finishEnumerating(upTo: next)
             } catch {
                 observer.value.finishEnumeratingWithError(FileProviderExtension.providerError(error))
             }
@@ -75,6 +79,12 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
     func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
         let etag = repository.store.listedEtag(of: folder ?? .root) ?? ""
         completionHandler(Self.anchor(etag))
+    }
+
+    static let pageSize = 500
+
+    private static func offset(of page: NSFileProviderPage) -> Int {
+        Int(String(decoding: page.rawValue, as: UTF8.self)) ?? 0
     }
 
     private static func anchor(_ etag: String) -> NSFileProviderSyncAnchor {

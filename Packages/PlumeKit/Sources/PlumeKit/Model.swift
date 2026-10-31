@@ -118,6 +118,16 @@ public struct RemoteItem: Hashable, Sendable, Codable, Identifiable {
 }
 
 public enum PlumeError: LocalizedError, Equatable, Sendable {
+    static func from(_ error: URLError) -> Error {
+        switch error.code {
+        case .cancelled: CancellationError()
+        case .serverCertificateUntrusted, .serverCertificateHasBadDate, .serverCertificateHasUnknownRoot,
+             .serverCertificateNotYetValid, .clientCertificateRejected, .secureConnectionFailed:
+            PlumeError.untrustedCertificate
+        default: PlumeError.offline
+        }
+    }
+
     case notSignedIn
     case unauthorized
     case notFound
@@ -125,6 +135,10 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
     case conflict
     case insufficientStorage
     case offline
+    case forbidden
+    case maintenance
+    case untrustedCertificate
+    case notNextcloud
     case http(Int)
     case invalidResponse(String)
     /// The server refused, with its own explanation.
@@ -138,7 +152,11 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
         case .alreadyExists: "An item with this name already exists."
         case .conflict: "The destination folder doesn't exist."
         case .insufficientStorage: "Not enough storage left on the server."
-        case .offline: "The server can't be reached."
+        case .offline: "The server can't be reached. Check the address and your connection."
+        case .forbidden: "You don't have permission to do this on the server."
+        case .maintenance: "The server is in maintenance mode. Try again in a few minutes."
+        case .untrustedCertificate: "The server's security certificate isn't trusted. Plume only connects to servers with a certificate from a recognized authority, such as Let's Encrypt."
+        case .notNextcloud: "No Nextcloud server answered at this address. Enter the address you use to open Nextcloud in a browser, for example cloud.example.com."
         case .http(let status): "The server answered with an error (HTTP \(status))."
         case .invalidResponse(let detail): "Unexpected server response: \(detail)"
         case .refused(let message): message

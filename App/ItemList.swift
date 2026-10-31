@@ -164,6 +164,7 @@ struct ItemRow: View {
         HStack(spacing: 12) {
             icon
                 .frame(width: 36, height: 36)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name).lineLimit(1).truncationMode(.middle)
                 Text(showsLocation ? location : item.summary)
@@ -172,6 +173,7 @@ struct ItemRow: View {
             Spacer(minLength: 0)
             if item.isFavorite {
                 Image(systemName: "star.fill").font(.caption).foregroundStyle(.yellow)
+                    .accessibilityLabel("Favorite")
             }
             if model.isAvailableOffline(item) {
                 Image(systemName: "arrow.down.circle.fill").font(.caption).foregroundStyle(.secondary)
@@ -179,8 +181,12 @@ struct ItemRow: View {
             }
             if item.isDirectory {
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(item.isDirectory ? .isButton : [])
+        .accessibilityHint(item.isDirectory ? "Opens the folder" : "Shows the file")
         .padding(.vertical, 2)
         .contentShape(.rect)
         .task(id: item.etag) {

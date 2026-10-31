@@ -345,7 +345,7 @@ public final class NextcloudClient: Sendable {
         do {
             (data, response) = try await session.data(for: request)
         } catch let error as URLError {
-            throw error.code == .cancelled ? CancellationError() : PlumeError.offline
+            throw PlumeError.from(error)
         }
         let ocs = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["ocs"] as? [String: Any]
         // OCS explains a refusal (a weak password, an unknown user…): show it.
@@ -372,8 +372,7 @@ public final class NextcloudClient: Sendable {
         do {
             (data, response) = try await session.data(for: request)
         } catch let error as URLError {
-            // A request cancelled with its task is not a failure to report.
-            throw error.code == .cancelled ? CancellationError() : PlumeError.offline
+            throw PlumeError.from(error)
         }
         try check(response, data: data)
         return data
@@ -384,10 +383,13 @@ public final class NextcloudClient: Sendable {
         switch http.statusCode {
         case 200..<300: return
         case 401: throw PlumeError.unauthorized
+        case 403: throw PlumeError.forbidden
         case 404: throw PlumeError.notFound
         case 409: throw PlumeError.conflict
         // If-None-Match: * on PUT, Overwrite: F on MOVE.
         case 412: throw PlumeError.alreadyExists
+        case 503 where http.value(forHTTPHeaderField: "X-Nextcloud-Maintenance-Mode") != nil:
+            throw PlumeError.maintenance
         case 507: throw PlumeError.insufficientStorage
         default: throw PlumeError.http(http.statusCode)
         }

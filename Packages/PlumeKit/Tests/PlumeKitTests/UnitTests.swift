@@ -138,3 +138,36 @@ import Testing
         #expect(!store.isPinned(RemotePath("100%_real.txt")))
     }
 }
+
+struct ErrorTests {
+    @Test func networkErrorsAreExplained() {
+        #expect(PlumeError.from(URLError(.serverCertificateUntrusted)) as? PlumeError == .untrustedCertificate)
+        #expect(PlumeError.from(URLError(.serverCertificateHasBadDate)) as? PlumeError == .untrustedCertificate)
+        #expect(PlumeError.from(URLError(.timedOut)) as? PlumeError == .offline)
+        #expect(PlumeError.from(URLError(.notConnectedToInternet)) as? PlumeError == .offline)
+        #expect(PlumeError.from(URLError(.cancelled)) is CancellationError)
+    }
+
+    @Test func statusCodesAreExplained() throws {
+        let client = NextcloudClient(credentials: Credentials(
+            account: Account(server: URL(string: "https://cloud.example.com")!, loginName: "a", userID: "a"),
+            appPassword: "x"))
+        func response(_ status: Int, _ headers: [String: String] = [:]) -> URLResponse {
+            HTTPURLResponse(url: URL(string: "https://cloud.example.com")!, statusCode: status,
+                            httpVersion: nil, headerFields: headers)!
+        }
+        #expect(throws: PlumeError.forbidden) { try client.check(response(403), data: nil) }
+        #expect(throws: PlumeError.maintenance) {
+            try client.check(response(503, ["X-Nextcloud-Maintenance-Mode": "1"]), data: nil)
+        }
+        #expect(throws: PlumeError.http(503)) { try client.check(response(503), data: nil) }
+        #expect(throws: PlumeError.insufficientStorage) { try client.check(response(507), data: nil) }
+        #expect(throws: PlumeError.unauthorized) { try client.check(response(401), data: nil) }
+    }
+
+    @Test func notNextcloudIsExplained() async {
+        await #expect(throws: PlumeError.self) {
+            _ = try await LoginFlow.start(server: URL(string: "https://example.com")!)
+        }
+    }
+}

@@ -3,6 +3,7 @@
 # Config/Local.xcconfig, see Config/Base.xcconfig.
 name: Plume
 options:
+  knownRegions: [en, fr]
   deploymentTarget:
     iOS: "18.0"
     macOS: "15.0"
@@ -48,6 +49,7 @@ targetTemplates:
         # home reached by its .local name or IP address).
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: "Plume connects to your Nextcloud server when it is on your local network, for example a server at home."
         LSApplicationCategoryType: public.app-category.productivity
         # Only HTTPS (exempt encryption): no export compliance question on
         # each TestFlight upload.
@@ -88,6 +90,7 @@ targetTemplates:
         # home reached by its .local name or IP address).
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: "Plume connects to your Nextcloud server when it is on your local network, for example a server at home."
         NSExtension:
           NSExtensionPointIdentifier: com.apple.fileprovider-nonui
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FileProviderExtension
@@ -138,6 +141,7 @@ targetTemplates:
         # home reached by its .local name or IP address).
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: "Plume connects to your Nextcloud server when it is on your local network, for example a server at home."
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController

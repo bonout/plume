@@ -17,6 +17,8 @@ final class AppModel {
     /// Files opened in Plume from another app, waiting for a destination.
     var pendingImports: [URL] = []
     var errorMessage: String?
+    var credentialsRevoked = false
+    var lastServer = AppGroup.defaults.string(forKey: "lastServer") ?? ""
     /// Bumped when something changed on the server because of the app:
     /// visible folders reload.
     private(set) var revision = 0
@@ -90,6 +92,8 @@ final class AppModel {
 
     func signIn(_ credentials: Credentials) throws {
         try AccountStore.save(credentials)
+        lastServer = credentials.account.server.absoluteString
+        AppGroup.defaults.set(lastServer, forKey: "lastServer")
         activate(credentials)
     }
 
@@ -168,7 +172,12 @@ final class AppModel {
         await spotlight.removeAll()
         AccountStore.remove()
         AppGroup.defaults.removeObject(forKey: "indexComplete")
+        AppGroup.defaults.removeObject(forKey: "lastShareFolder")
         AppGroup.pinnedPaths = []
+        MetadataStore.removeAllDatabases()
+        try? FileManager.default.removeItem(at: AppGroup.cachesURL)
+        try? FileManager.default.removeItem(at: FileManager.default.temporaryDirectory.appending(path: "Versions"))
+        credentialsRevoked = false
         capabilities = ServerCapabilities()
         indexComplete = false
         credentials = nil
@@ -364,6 +373,10 @@ final class AppModel {
 
     func report(_ error: Error) {
         if error is CancellationError || (error as? URLError)?.code == .cancelled { return }
+        if error as? PlumeError == .unauthorized {
+            credentialsRevoked = true
+            return
+        }
         Logger(subsystem: "Plume", category: "App").error("\(error, privacy: .public)")
         errorMessage = error.localizedDescription
     }

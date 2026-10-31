@@ -87,6 +87,12 @@ struct RootView: View {
                 #endif
             }
         }
+        .alert("Sign In Again", isPresented: $model.credentialsRevoked) {
+            Button("Sign In Again") { Task { await model.signOut() } }
+            Button("Later", role: .cancel) {}
+        } message: {
+            Text("The server no longer accepts Plume's app password. It may have been revoked in Nextcloud's security settings.")
+        }
         .alert("Something went wrong", isPresented: Binding(get: { model.errorMessage != nil },
                                                             set: { if !$0 { model.errorMessage = nil } })) {
             Button("OK", role: .cancel) {}
