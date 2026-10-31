@@ -93,6 +93,24 @@ targetTemplates:
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FileProviderExtension
           NSExtensionFileProviderSupportsEnumeration: true
           NSExtensionFileProviderDocumentGroup: $(PLUME_APP_GROUP)
+          # In the item menus of Finder and the Files app (see
+          # FileProviderExtension.performAction).
+          NSExtensionFileProviderActions:
+            - NSExtensionFileProviderActionIdentifier: plume.copyLink
+              NSExtensionFileProviderActionName: Copy Public Link
+              NSExtensionFileProviderActionActivationRule: >-
+                SUBQUERY ( fileproviderItems, $fileproviderItem,
+                $fileproviderItem.itemIdentifier != "NSFileProviderRootContainerItemIdentifier" ).@count == 1
+            - NSExtensionFileProviderActionIdentifier: plume.favorite
+              NSExtensionFileProviderActionName: Add to Favorites
+              NSExtensionFileProviderActionActivationRule: >-
+                SUBQUERY ( fileproviderItems, $fileproviderItem,
+                $fileproviderItem.userInfo.favorite == NO ).@count > 0
+            - NSExtensionFileProviderActionIdentifier: plume.unfavorite
+              NSExtensionFileProviderActionName: Remove from Favorites
+              NSExtensionFileProviderActionActivationRule: >-
+                SUBQUERY ( fileproviderItems, $fileproviderItem,
+                $fileproviderItem.userInfo.favorite == YES ).@count > 0
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(PLUME_BUNDLE_PREFIX).fileprovider
@@ -173,6 +191,12 @@ targets:
       properties:
         LSSupportsOpeningDocumentsInPlace: false
         UILaunchScreen: {}
+        # Changes from the server while Plume is closed (refresh), uploads
+        # that go on after leaving the app (upload.*, iOS 26).
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers:
+          - $(PRODUCT_BUNDLE_IDENTIFIER).refresh
+          - $(PRODUCT_BUNDLE_IDENTIFIER).upload.*
     settings:
       base:
         PLUME_APP_GROUP: $(PLUME_IOS_APP_GROUP)

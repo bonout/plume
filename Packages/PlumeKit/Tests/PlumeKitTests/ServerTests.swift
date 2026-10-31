@@ -183,4 +183,83 @@ struct ServerTests {
             #expect(Set(collected.withLock { $0 }.flatMap(\.removed).map(\.name)) == ["B", "Été.txt"])
         }
     }
+
+    @Test func versionsRestoreAndTrash() async throws {
+        try await inBase {
+            let client = repository.client
+            let path = base.appending("notes.txt")
+            for text in ["one", "two", "three"] {
+                let file = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+                try Data(text.utf8).write(to: file)
+                try await client.upload(file, to: path, overwrite: true)
+                // Versions are named by second.
+                try await Task.sleep(for: .milliseconds(1100))
+            }
+            let item = try await client.item(at: path)
+            let versions = try await client.versions(of: item)
+            #expect(versions.count >= 2)
+            // The oldest version holds "one": restore it.
+            let oldest = try #require(versions.last)
+            let copy = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            try await client.download(oldest, to: copy)
+            #expect(try String(contentsOf: copy, encoding: .utf8) == "one")
+            try await client.restore(oldest)
+            let restored = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            try await client.download(path, to: restored)
+            #expect(try String(contentsOf: restored, encoding: .utf8) == "one")
+
+            // Delete, find it in the trash, put it back.
+            try await client.delete(path)
+            let trashed = try #require(try await client.trash().first { $0.originalLocation == path })
+            #expect(trashed.name == "notes.txt")
+            #expect(!trashed.isDirectory)
+            try await client.restore(trashed)
+            #expect(try await client.item(at: path).name == "notes.txt")
+            #expect(try await client.trash().contains { $0.id == trashed.id } == false)
+
+            // Delete again, then for good.
+            try await client.delete(path)
+            let again = try #require(try await client.trash().first { $0.originalLocation == path })
+            try await client.deletePermanently(again)
+            #expect(try await client.trash().contains { $0.id == again.id } == false)
+        }
+    }
+
+    @Test func sharingLinksAndUsers() async throws {
+        try await inBase {
+            let client = repository.client
+            let folder = base.appending("Shared")
+            _ = try await client.createFolder(at: folder)
+            let capabilities = try await client.capabilities()
+            #expect(capabilities.linksEnabled)
+
+            let expiry = Calendar.current.date(byAdding: .day, value: 10, to: .now)!
+            var link = try await client.createLink(for: folder, password: "Plume-Test-Pass-9876", expiration: expiry)
+            #expect(link.kind == .link)
+            #expect(link.hasPassword)
+            #expect(link.url != nil)
+            #expect(link.expiration != nil)
+            link = try await client.update(link, permissions: Permission.edit(isDirectory: true),
+                                           password: "", expiration: .some(nil))
+            #expect(link.canEdit)
+            #expect(!link.hasPassword)
+            #expect(link.expiration == nil)
+
+            // A weak password is refused with the server's explanation.
+            await #expect(throws: PlumeError.self) {
+                _ = try await client.update(link, password: "1")
+            }
+
+            let others = try await client.sharees(matching: "", isDirectory: true)
+            if let someone = others.first(where: { !$0.isGroup && $0.shareWith != client.account.userID }) {
+                let share = try await client.share(folder, with: someone, permissions: Permission.read)
+                #expect(share.kind == .user)
+                #expect(!share.canEdit)
+                try await client.delete(share)
+            }
+            #expect(try await client.shares(of: folder).map(\.id) == [link.id])
+            try await client.delete(link)
+            #expect(try await client.shares(of: folder).isEmpty)
+        }
+    }
 }

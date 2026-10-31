@@ -1,5 +1,13 @@
 import Foundation
 
+/// One `<d:response>` of a multistatus: its decoded href path and the
+/// properties of its `200` propstats, by local name.
+struct DAVResponse: Sendable {
+    var path: String
+    var props: [String: String]
+    var isCollection: Bool
+}
+
 /// Reads a WebDAV multistatus (PROPFIND, SEARCH, REPORT) into items. Only the
 /// properties of a `200` propstat count; hrefs are turned into paths relative
 /// to the user's files folder, and responses outside it are dropped.
@@ -7,7 +15,7 @@ final class DAVParser: NSObject, XMLParserDelegate {
     /// Decoded path of the user's files folder, e.g. `/remote.php/dav/files/alice`.
     private let filesRoot: String
 
-    private var items: [RemoteItem] = []
+    private var responses: [DAVResponse] = []
     private var text = ""
     private var href: String?
     private var props: [String: String] = [:]
@@ -34,13 +42,24 @@ final class DAVParser: NSObject, XMLParserDelegate {
 
     static func parse(_ data: Data, filesRoot: String) throws -> [RemoteItem] {
         let delegate = DAVParser(filesRoot: filesRoot)
+        return try responses(data).compactMap(delegate.makeItem)
+    }
+
+    /// Every response, whatever its location (versions, trash bin…).
+    static func responses(_ data: Data) throws -> [DAVResponse] {
+        let delegate = DAVParser(filesRoot: "")
         let parser = XMLParser(data: data)
         parser.shouldProcessNamespaces = true
         parser.delegate = delegate
         guard parser.parse() else {
             throw PlumeError.invalidResponse(parser.parserError?.localizedDescription ?? "invalid XML")
         }
-        return delegate.items
+        return delegate.responses
+    }
+
+    /// `getlastmodified`'s format (RFC 1123).
+    static func date(_ value: String?) -> Date? {
+        value.flatMap { DAVParser(filesRoot: "").dateFormatter.date(from: $0) }
     }
 
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?,
@@ -86,20 +105,22 @@ final class DAVParser: NSObject, XMLParserDelegate {
                 isCollection = isCollection || propstatIsCollection
             }
         case "response":
-            if let item = makeItem() { items.append(item) }
+            if let href {
+                // The href is a percent-encoded absolute path (some servers
+                // send a full URL).
+                var path = href
+                if let url = URL(string: href), url.scheme != nil { path = url.path(percentEncoded: true) }
+                path = path.removingPercentEncoding ?? path
+                responses.append(DAVResponse(path: path, props: props, isCollection: isCollection))
+            }
         default:
             if inPropstat && !inResourceType { propstatProps[elementName] = value }
         }
         text = ""
     }
 
-    private func makeItem() -> RemoteItem? {
-        guard let href else { return nil }
-        // The href is a percent-encoded absolute path (some servers send a
-        // full URL).
-        var path = href
-        if let url = URL(string: href), url.scheme != nil { path = url.path(percentEncoded: true) }
-        path = path.removingPercentEncoding ?? path
+    private func makeItem(_ response: DAVResponse) -> RemoteItem? {
+        let path = response.path, props = response.props, isCollection = response.isCollection
         guard path == filesRoot || path.hasPrefix(filesRoot + "/") else { return nil }
         let relative = RemotePath(String(path.dropFirst(filesRoot.count)))
 

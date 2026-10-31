@@ -1,5 +1,5 @@
-# Uploads the iPhone/iPad app to TestFlight, from the Actions tab (Run
-# workflow) or on a version tag. Everything personal comes from the
+# Uploads the iPhone/iPad and Mac apps to TestFlight, from the Actions tab
+# (Run workflow, both or one platform) or on a version tag (both). Everything personal comes from the
 # `release` environment of the repository, never from the code:
 #
 # Variables: PLUME_BUNDLE_PREFIX (the prefix of the bundle identifiers).
@@ -15,6 +15,12 @@
 name: TestFlight
 on:
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: Platforms
+        type: choice
+        options: [both, ios, mac]
+        default: both
   push:
     tags: ["v*"]
 
@@ -27,7 +33,13 @@ concurrency:
 
 jobs:
   upload:
-    name: iPhone app (TestFlight)
+    name: ${{ matrix.platform == 'ios' && 'iPhone and iPad' || 'Mac' }} app (TestFlight)
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, mac]
+        exclude:
+          - platform: ${{ (inputs.platforms == 'ios' && 'mac') || (inputs.platforms == 'mac' && 'ios') || 'none' }}
     runs-on: macos-15
     environment: release
     env:
@@ -60,7 +72,7 @@ jobs:
           security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
       - run: |
           printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/asc.p8"
-          ASC_KEY_PATH="$RUNNER_TEMP/asc.p8" scripts/testflight-ios.sh
+          ASC_KEY_PATH="$RUNNER_TEMP/asc.p8" scripts/testflight.sh ${{ matrix.platform }}
       - if: always()
         run: |
           security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true

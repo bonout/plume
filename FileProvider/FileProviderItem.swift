@@ -7,9 +7,13 @@ final class FileProviderItem: NSObject, NSFileProviderItem {
     let remote: RemoteItem
     let parentItemIdentifier: NSFileProviderItemIdentifier
 
-    init(_ remote: RemoteItem, parent: NSFileProviderItemIdentifier) {
+    /// Kept offline in Plume (the item or a folder above it).
+    let isPinned: Bool
+
+    init(_ remote: RemoteItem, parent: NSFileProviderItemIdentifier, isPinned: Bool = false) {
         self.remote = remote
         parentItemIdentifier = parent
+        self.isPinned = isPinned
     }
 
     var itemIdentifier: NSFileProviderItemIdentifier {
@@ -26,7 +30,8 @@ final class FileProviderItem: NSObject, NSFileProviderItem {
     var itemVersion: NSFileProviderItemVersion {
         let content = remote.isDirectory ? Data("folder".utf8) : Data(remote.etag.utf8)
         return NSFileProviderItemVersion(contentVersion: content,
-                                         metadataVersion: Data((remote.etag + "/" + remote.path.rawValue).utf8))
+                                         metadataVersion: Data((remote.etag + "/" + remote.path.rawValue
+                                                                + (isPinned ? "/pinned" : "")).utf8))
     }
 
     var capabilities: NSFileProviderItemCapabilities {
@@ -45,6 +50,16 @@ final class FileProviderItem: NSObject, NSFileProviderItem {
         if remote.canMove { capabilities.insert(.allowsReparenting) }
         return capabilities
     }
+
+    /// Read by the actions' activation rules (project.yml).
+    var userInfo: [AnyHashable: Any]? { ["favorite": remote.isFavorite] }
+
+    #if os(macOS)
+    /// Items kept offline in Plume stay downloaded in Finder too.
+    var contentPolicy: NSFileProviderContentPolicy {
+        isPinned ? .downloadEagerlyAndKeepDownloaded : .inherited
+    }
+    #endif
 
     #if os(iOS)
     /// Favorites from the server show up as such in the Files app.

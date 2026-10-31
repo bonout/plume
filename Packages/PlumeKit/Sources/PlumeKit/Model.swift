@@ -127,6 +127,8 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
     case offline
     case http(Int)
     case invalidResponse(String)
+    /// The server refused, with its own explanation.
+    case refused(String)
 
     public var errorDescription: String? {
         switch self {
@@ -139,6 +141,7 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
         case .offline: "The server can't be reached."
         case .http(let status): "The server answered with an error (HTTP \(status))."
         case .invalidResponse(let detail): "Unexpected server response: \(detail)"
+        case .refused(let message): message
         }
     }
 }

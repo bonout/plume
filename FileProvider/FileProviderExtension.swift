@@ -2,6 +2,11 @@
 import Foundation
 import PlumeKit
 import UniformTypeIdentifiers
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 /// Puts the Nextcloud files in Finder and the Files app, the way iCloud
 /// Drive is: placeholders listed from the server, contents downloaded when
@@ -37,7 +42,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         perform { (repository: Repository) async throws -> FileProviderItem in
             let remote = try await repository.client.item(at: try self.path(of: identifier, in: repository))
             repository.store.upsert(remote)
-            return try self.providerItem(remote, in: repository)
+            return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, error) }
         return progress
     }
@@ -61,7 +66,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             } else {
                 try await repository.client.download(remote.path, to: destination, progress: progress)
             }
-            return (destination, try self.providerItem(remote, in: repository))
+            return (destination, self.providerItem(remote, in: repository))
         } done: { result, error in completionHandler(result?.0, result?.1, error) }
         return progress
     }
@@ -102,7 +107,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
                 }
             }
             repository.store.upsert(remote)
-            return try self.providerItem(remote, in: repository)
+            return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, [], false, error) }
         return progress
     }
@@ -134,7 +139,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             // Other fields (tags, last used date, favorite rank) stay local.
             let remote = try await repository.client.item(at: path)
             repository.store.upsert(remote)
-            return try self.providerItem(remote, in: repository)
+            return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, [], false, error) }
         return progress
     }
@@ -182,8 +187,9 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         return item.path
     }
 
-    func providerItem(_ remote: RemoteItem, in repository: Repository) throws -> FileProviderItem {
-        FileProviderItem(remote, parent: parentIdentifier(of: remote, in: repository))
+    func providerItem(_ remote: RemoteItem, in repository: Repository) -> FileProviderItem {
+        FileProviderItem(remote, parent: parentIdentifier(of: remote, in: repository),
+                         isPinned: AppGroup.pinnedPaths.contains(remote.path))
     }
 
     func parentIdentifier(of remote: RemoteItem, in repository: Repository) -> NSFileProviderItemIdentifier {
@@ -232,7 +238,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             case .alreadyExists: return NSFileProviderError(.filenameCollision)
             case .insufficientStorage: return NSFileProviderError(.insufficientQuota)
             case .offline: return NSFileProviderError(.serverUnreachable)
-            case .conflict, .http, .invalidResponse: return NSFileProviderError(.cannotSynchronize)
+            case .conflict, .http, .invalidResponse, .refused: return NSFileProviderError(.cannotSynchronize)
             }
         case let error as URLError where error.code != .cancelled:
             return NSFileProviderError(.serverUnreachable)
@@ -267,5 +273,106 @@ final class EmptyEnumerator: NSObject, NSFileProviderEnumerator {
 
     func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
         completionHandler(NSFileProviderSyncAnchor(Data("empty".utf8)))
+    }
+}
+
+// MARK: - Thumbnails
+
+/// Finder and the Files app show the server's thumbnails (photos, PDFs,
+/// videos, Office documents…) before anything is downloaded.
+extension FileProviderExtension: NSFileProviderThumbnailing {
+    func fetchThumbnails(for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize,
+                         perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void,
+                         completionHandler: @escaping (Error?) -> Void) -> Progress {
+        let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
+        let each = UncheckedBox(perThumbnailCompletionHandler)
+        let done = UncheckedBox(completionHandler)
+        guard let repository else {
+            completionHandler(NSFileProviderError(.notAuthenticated))
+            return progress
+        }
+        // The server renders square thumbnails; ask for the larger side,
+        // within what it generates.
+        let pixels = min(1024, max(64, Int(max(size.width, size.height))))
+        let task = Task {
+            await withTaskGroup(of: Void.self) { group in
+                for identifier in itemIdentifiers {
+                    group.addTask {
+                        let item = repository.store.item(fileID: identifier.rawValue)
+                        var data: Data?
+                        if let item, item.hasPreview, !item.isDirectory {
+                            data = try? await repository.client.preview(of: item, size: pixels)
+                        }
+                        if Task.isCancelled {
+                            each.value(identifier, nil, CocoaError(.userCancelled))
+                        } else {
+                            each.value(identifier, data, nil)
+                        }
+                        progress.completedUnitCount += 1
+                    }
+                }
+            }
+            done.value(Task.isCancelled ? CocoaError(.userCancelled) : nil)
+        }
+        progress.cancellationHandler = { task.cancel() }
+        return progress
+    }
+}
+
+// MARK: - Actions in Finder and the Files app
+
+/// The actions declared under NSExtensionFileProviderActions (project.yml),
+/// shown in the item's menu.
+extension FileProviderExtension: NSFileProviderCustomAction {
+    enum Action: String {
+        case copyLink = "plume.copyLink"
+        case favorite = "plume.favorite"
+        case unfavorite = "plume.unfavorite"
+    }
+
+    func performAction(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier,
+                       onItemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
+                       completionHandler: @escaping (Error?) -> Void) -> Progress {
+        let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
+        let manager = NSFileProviderManager(for: domain)
+        perform { (repository: Repository) async throws -> Void in
+            guard let action = Action(rawValue: actionIdentifier.rawValue) else {
+                throw CocoaError(.featureUnsupported)
+            }
+            let items = try itemIdentifiers.map { identifier -> RemoteItem in
+                guard identifier != .rootContainer, let item = repository.store.item(fileID: identifier.rawValue) else {
+                    throw NSFileProviderError(.noSuchItem)
+                }
+                return item
+            }
+            switch action {
+            case .copyLink:
+                var links: [String] = []
+                for item in items {
+                    links.append(try await repository.client.publicLink(for: item.path).absoluteString)
+                    progress.completedUnitCount += 1
+                }
+                Pasteboard.copy(links.joined(separator: "\n"))
+            case .favorite, .unfavorite:
+                for item in items {
+                    _ = try await repository.setFavorite(action == .favorite, for: item)
+                    progress.completedUnitCount += 1
+                }
+                // The menus follow the new state.
+                try? await manager?.signalEnumerator(for: .workingSet)
+            }
+        } done: { _, error in completionHandler(error) }
+        return progress
+    }
+}
+
+enum Pasteboard {
+    static func copy(_ text: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #else
+        UIPasteboard.general.string = text
+        #endif
     }
 }
