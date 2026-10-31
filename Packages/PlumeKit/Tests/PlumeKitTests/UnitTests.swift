@@ -127,6 +127,12 @@ import Testing
         #expect(store.search("return").map(\.name) == ["Return 2025.pdf"])
         #expect(store.search("taxes").map(\.name) == ["Taxes"])
         #expect(store.search("%_").map(\.name) == ["100%_real.txt"])
+        store.upsert(file("Taxes/Résumé Final.pdf"))
+        #expect(store.search("resume").map(\.name) == ["Résumé Final.pdf"])
+        #expect(store.search("RÉSU").map(\.name) == ["Résumé Final.pdf"])
+        // Names starting with the term come first.
+        store.upsert(file("Taxes/Old return.pdf"))
+        #expect(Set(store.search("re").prefix(2).map(\.name)) == ["Résumé Final.pdf", "Return 2025.pdf"])
         store.pin(RemotePath("Taxes"))
         #expect(store.isPinned(RemotePath("Taxes/Return 2025.pdf")))
         #expect(!store.isPinned(RemotePath("100%_real.txt")))

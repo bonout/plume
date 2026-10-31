@@ -17,9 +17,11 @@ struct LoginView: View {
     var body: some View {
         VStack(spacing: 24) {
             VStack(spacing: 8) {
-                Image(systemName: "cloud.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(.tint)
+                Image("Logo")
+                    .resizable()
+                    .frame(width: 96, height: 96)
+                    .clipShape(.rect(cornerRadius: 22, style: .continuous))
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                 Text("Plume").font(.largeTitle.bold())
                 Text("A light client for your Nextcloud.").foregroundStyle(.secondary)
             }

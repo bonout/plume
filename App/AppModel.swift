@@ -23,6 +23,23 @@ final class AppModel {
 
     let thumbnails = ThumbnailCache()
 
+    /// The Files browser's navigation stack (Spotlight results open in it).
+    var path: [RemotePath] = DebugLaunch.initialPath
+    /// The search, shared by every folder: it covers the whole account.
+    var searchText = DebugLaunch.initialSearch
+    /// Mac sidebar section.
+    var section: Section = DebugLaunch.initialSection
+    /// Every folder has been listed once: searches are answered locally.
+    private(set) var indexComplete = AppGroup.defaults.bool(forKey: "indexComplete")
+
+    enum Section: String, Hashable {
+        case files, favorites, offline
+    }
+
+    private let spotlight = SpotlightIndex()
+    private var spotlightFeed: Task<Void, Never>?
+    private var syncing = false
+
     struct Transfer: Identifiable {
         let id = UUID()
         let name: String
@@ -74,7 +91,13 @@ final class AppModel {
             return
         }
         self.credentials = credentials
-        repository = Repository(client: NextcloudClient(credentials: credentials), store: store)
+        // Every change the repository sees goes to Spotlight, in order.
+        let (changes, feed) = AsyncStream.makeStream(of: Repository.Changes.self)
+        repository = Repository(client: NextcloudClient(credentials: credentials), store: store,
+                                onChange: { feed.yield($0) })
+        spotlightFeed = Task { [spotlight] in
+            for await batch in changes { await spotlight.apply(batch) }
+        }
         Task {
             await FileProviderControl.register()
             await DebugLaunch.apply(to: self)
@@ -89,22 +112,38 @@ final class AppModel {
             repository.files.removeAll()
         }
         await FileProviderControl.removeAll()
+        spotlightFeed?.cancel()
+        await spotlight.removeAll()
         AccountStore.remove()
+        AppGroup.defaults.removeObject(forKey: "indexComplete")
+        indexComplete = false
         credentials = nil
         repository = nil
         transfers = []
+        path = []
+        searchText = ""
     }
 
     // MARK: Sync
 
-    /// Sends what the share extension left, refreshes offline files, and
-    /// tells Finder / Files to look for changes. Run when the app becomes
-    /// active and periodically while it is.
+    /// Sends what the share extension left, mirrors the tree (for search and
+    /// Spotlight), refreshes offline files, and tells Finder / Files to look
+    /// for changes. Run when the app becomes active and every minute while
+    /// it is; once the tree is known, one request when nothing changed.
     func sync() async {
-        guard let repository else { return }
+        guard let repository, !syncing else { return }
+        syncing = true
+        defer { syncing = false }
         let outbox = Outbox()
         if !outbox.pending().isEmpty, await outbox.sendAll(with: repository) > 0 {
             revision += 1
+        }
+        if (try? await repository.syncTree()) != nil {
+            indexComplete = true
+            AppGroup.defaults.set(true, forKey: "indexComplete")
+            if await !spotlight.isCurrent {
+                await spotlight.reindex(repository.store.subtree(of: .root))
+            }
         }
         await repository.syncAllOffline()
         repository.files.trimCache()
@@ -112,6 +151,20 @@ final class AppModel {
     }
 
     // MARK: Files
+
+    /// Shows an item found by Spotlight: its folder, or the file in Quick
+    /// Look over its folder.
+    func reveal(fileID: String) {
+        guard let item = repository?.store.item(fileID: fileID) else { return }
+        searchText = ""
+        section = .files
+        if item.isDirectory {
+            path = item.path.ancestry
+        } else {
+            path = (item.path.parent ?? .root).ancestry
+            open(item)
+        }
+    }
 
     /// Downloads if needed, then shows the file in Quick Look.
     func open(_ item: RemoteItem) {

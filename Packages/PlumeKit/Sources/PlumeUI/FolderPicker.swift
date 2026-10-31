@@ -18,13 +18,7 @@ public struct FolderPicker: View {
     public init(repository: Repository, title: String, actionTitle: String = "Save Here", initial: RemotePath = .root,
                 onPick: @escaping (RemotePath) -> Void, onCancel: @escaping () -> Void) {
         self.repository = repository
-        var chain: [RemotePath] = []
-        var current: RemotePath? = initial
-        while let folder = current, !folder.isRoot {
-            chain.insert(folder, at: 0)
-            current = folder.parent
-        }
-        _path = State(initialValue: chain)
+        _path = State(initialValue: initial.ancestry)
         self.title = title
         self.actionTitle = actionTitle
         self.onPick = onPick

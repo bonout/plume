@@ -1,3 +1,4 @@
+import CoreSpotlight
 import PlumeKit
 import PlumeUI
 import QuickLook
@@ -43,6 +44,20 @@ struct RootView: View {
             }
         }
         .quickLookPreview($model.previewURL)
+        // A Spotlight result: open the folder, or the file over its folder.
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            if let id = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String {
+                model.reveal(fileID: id)
+            }
+        }
+        // "Search in App" from Spotlight.
+        .onContinueUserActivity(CSQueryContinuationActionType) { activity in
+            if let query = activity.userInfo?[CSSearchQueryString] as? String {
+                model.section = .files
+                model.path = []
+                model.searchText = query
+            }
+        }
         .onOpenURL { url in
             // A file opened in Plume from another app (or dropped on the
             // Dock icon): ask where to put it.
@@ -86,53 +101,80 @@ struct RootView: View {
 }
 
 struct MainView: View {
-    enum Section: String, Hashable {
-        case files, favorites, offline, settings
-    }
-
     @Environment(AppModel.self) private var model
-    @State private var selection = DebugLaunch.initialTab
+    @State private var showingSettings = false
 
     var body: some View {
-        TabView(selection: $selection) {
-            Tab("Files", systemImage: "folder", value: .files) {
-                BrowserStack(initialPath: DebugLaunch.initialPath) { FolderView(path: .root) }
+        @Bindable var model = model
+        browser
+            .safeAreaInset(edge: .bottom) {
+                if !model.transfers.isEmpty { TransferBar() }
             }
-            Tab("Favorites", systemImage: "star", value: .favorites) {
+    }
+
+    #if os(iOS)
+    /// iPhone and iPad: just the files, their search, and settings behind
+    /// a button.
+    private var browser: some View {
+        @Bindable var model = model
+        return BrowserStack(path: $model.path) {
+            FolderView(path: .root)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Settings", systemImage: "gearshape") { showingSettings = true }
+                    }
+                }
+        }
+        .sheet(isPresented: $showingSettings) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingSettings = false }
+                        }
+                    }
+            }
+        }
+    }
+    #else
+    /// Mac: a sidebar with the files, favorites and offline items.
+    private var browser: some View {
+        @Bindable var model = model
+        return TabView(selection: $model.section) {
+            Tab("Files", systemImage: "folder", value: AppModel.Section.files) {
+                BrowserStack(path: $model.path) { FolderView(path: .root) }
+            }
+            Tab("Favorites", systemImage: "star", value: AppModel.Section.favorites) {
                 BrowserStack { FavoritesView() }
             }
-            Tab("Offline", systemImage: "arrow.down.circle", value: .offline) {
+            Tab("Offline", systemImage: "arrow.down.circle", value: AppModel.Section.offline) {
                 BrowserStack { OfflineView() }
             }
-            #if os(iOS)
-            Tab("Settings", systemImage: "gear", value: .settings) {
-                NavigationStack { SettingsView() }
-            }
-            #endif
         }
         .tabViewStyle(.sidebarAdaptable)
-        .safeAreaInset(edge: .bottom) {
-            if !model.transfers.isEmpty { TransferBar() }
-        }
     }
+    #endif
 }
 
-/// A navigation stack whose pushed screens are folders.
+/// A navigation stack whose pushed screens are folders; its path is kept
+/// by the caller (the Files browser's lives in the model) or locally.
 struct BrowserStack<Root: View>: View {
     @ViewBuilder let root: () -> Root
-    @State private var path: [RemotePath]
+    private let external: Binding<[RemotePath]>?
+    @State private var local: [RemotePath] = []
 
-    init(initialPath: [RemotePath] = [], @ViewBuilder root: @escaping () -> Root) {
+    init(path: Binding<[RemotePath]>? = nil, @ViewBuilder root: @escaping () -> Root) {
         self.root = root
-        _path = State(initialValue: initialPath)
+        external = path
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
+        let path = external ?? $local
+        NavigationStack(path: path) {
             root()
                 .navigationDestination(for: RemotePath.self) { FolderView(path: $0) }
         }
-        .environment(\.openFolder, OpenFolderAction { path.append($0) })
+        .environment(\.openFolder, OpenFolderAction { path.wrappedValue.append($0) })
     }
 }
 

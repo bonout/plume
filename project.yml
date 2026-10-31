@@ -47,6 +47,8 @@ targetTemplates:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         LSApplicationCategoryType: public.app-category.productivity
+        # "Search in App" from Spotlight results.
+        CoreSpotlightContinuation: true
         # Any file can be opened in Plume ("Open in…", drop on the Dock
         # icon): it is then uploaded to a folder the user picks.
         CFBundleDocumentTypes:

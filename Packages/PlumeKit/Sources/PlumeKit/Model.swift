@@ -30,6 +30,18 @@ public struct RemotePath: Hashable, Sendable, Codable, Comparable, CustomStringC
         RemotePath(isRoot ? name : rawValue + "/" + name)
     }
 
+    /// The folders from the top down to this one, root excluded: a
+    /// navigation stack that shows it.
+    public var ancestry: [RemotePath] {
+        var chain: [RemotePath] = []
+        var current: RemotePath? = self
+        while let folder = current, !folder.isRoot {
+            chain.insert(folder, at: 0)
+            current = folder.parent
+        }
+        return chain
+    }
+
     /// True for this path itself and everything below it.
     public func contains(_ other: RemotePath) -> Bool {
         isRoot || other == self || other.rawValue.hasPrefix(rawValue + "/")

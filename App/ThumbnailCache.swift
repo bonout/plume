@@ -8,7 +8,7 @@ import PlumeKit
 @MainActor
 final class ThumbnailCache {
     private let memory = NSCache<NSString, CGImageBox>()
-    private let folder = AppGroup.cachesURL.appending(path: "Thumbnails", directoryHint: .isDirectory)
+    private nonisolated static let folder = AppGroup.cachesURL.appending(path: "Thumbnails", directoryHint: .isDirectory)
     static let pixelSize = 128
 
     final class CGImageBox {
@@ -18,18 +18,18 @@ final class ThumbnailCache {
 
     init() {
         memory.countLimit = 600
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: Self.folder, withIntermediateDirectories: true)
     }
 
     func cached(_ item: RemoteItem) -> CGImage? {
-        memory.object(forKey: key(item) as NSString)?.image
+        memory.object(forKey: Self.key(item) as NSString)?.image
     }
 
     func image(for item: RemoteItem, client: NextcloudClient) async -> CGImage? {
         guard item.hasPreview else { return nil }
-        let key = key(item)
+        let key = Self.key(item)
         if let box = memory.object(forKey: key as NSString) { return box.image }
-        let file = folder.appending(path: key + ".jpg")
+        let file = Self.diskURL(for: item)
         let data: Data
         if let cached = try? Data(contentsOf: file) {
             data = cached
@@ -43,7 +43,12 @@ final class ThumbnailCache {
         return image
     }
 
-    private func key(_ item: RemoteItem) -> String {
+    /// Where the item's thumbnail is kept on disk (Spotlight reads it too).
+    nonisolated static func diskURL(for item: RemoteItem) -> URL {
+        folder.appending(path: key(item) + ".jpg")
+    }
+
+    private nonisolated static func key(_ item: RemoteItem) -> String {
         item.fileID + "-" + item.etag.filter { $0.isLetter || $0.isNumber }
     }
 

@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var info: NextcloudClient.UserInfo?
     @State private var offlineSize: Int64 = 0
     @State private var cacheSize: Int64 = 0
+    @State private var indexed = 0
     @State private var confirmingSignOut = false
 
     var body: some View {
@@ -31,6 +32,8 @@ struct SettingsView: View {
             Section {
                 LabeledContent("Available offline", value: bytes(offlineSize))
                 LabeledContent("Recently opened", value: bytes(cacheSize))
+                LabeledContent("Indexed for search", value: model.indexComplete
+                               ? "\(indexed.formatted()) items" : "In progress…")
                 Button("Clear Recently Opened Files") {
                     model.repository?.files.clearCache()
                     measure()
@@ -60,6 +63,7 @@ struct SettingsView: View {
     private func measure() {
         guard let files = model.repository?.files else { return }
         offlineSize = files.size(of: files.offlineRoot)
+        indexed = max(0, (model.repository?.store.count ?? 1) - 1)
         cacheSize = files.size(of: files.cacheRoot)
     }
 

@@ -24,17 +24,20 @@ shoot_ios() { # device name, output, launch arguments…
   xcrun simctl launch "$device" "$id" "${LOGIN[@]}" "$@" >/dev/null
   sleep 9
   xcrun simctl io "$device" screenshot "$OUT/$out" >/dev/null 2>&1
+  sips --resampleWidth "$WIDTH" "$OUT/$out" >/dev/null
   echo "$OUT/$out"
 }
 
 xcodebuild -project Plume.xcodeproj -scheme PlumeiOS -configuration Debug \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DD" build -quiet
 IPHONE="${PLUME_IPHONE:-iPhone 17 Pro}"
+WIDTH=590
 IPAD="${PLUME_IPAD:-iPad Pro 13-inch (M5)}"
 shoot_ios "$IPHONE" iphone-files.png
 shoot_ios "$IPHONE" iphone-folder.png -PlumeInitialPath "Lisbon 2026" -PlumePin "Lisbon 2026"
 shoot_ios "$IPHONE" iphone-preview.png -PlumeInitialPath "Taxes" -PlumePreview "Taxes/Tax return 2025.pdf"
-shoot_ios "$IPAD" ipad-photos.png -PlumeInitialPath "Photos"
+shoot_ios "$IPHONE" iphone-search.png -PlumeSearch "resume"
+WIDTH=1000 shoot_ios "$IPAD" ipad-photos.png -PlumeInitialPath "Photos"
 
 # Mac: signed ad hoc and without entitlements (no team needed); the
 # extensions don't run, and without an app group the data stays in a
@@ -43,4 +46,7 @@ xcodebuild -project Plume.xcodeproj -scheme PlumeMac -configuration Debug -desti
   -derivedDataPath "$DD" build -quiet CODE_SIGN_IDENTITY=- CODE_SIGN_ENTITLEMENTS= DEVELOPMENT_TEAM= CODE_SIGN_STYLE=Manual PLUME_MAC_APP_GROUP=
 "$DD/Build/Products/Debug/Plume.app/Contents/MacOS/Plume" "${LOGIN[@]}" -PlumeInitialPath "Lisbon 2026" \
   -PlumeSnapshot "$PWD/$OUT/mac.png" >/dev/null 2>&1
+# The off-screen capture can't draw the translucent sidebar: keep the content.
+sips -c 1280 1670 --cropOffset 0 290 "$OUT/mac.png" --out "$OUT/mac.png" >/dev/null
+sips --resampleWidth 1200 "$OUT/mac.png" >/dev/null
 echo "$OUT/mac.png"

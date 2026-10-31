@@ -8,7 +8,8 @@ import SwiftUI
 /// for screenshots and manual tests against a throwaway server
 /// (scripts/screenshots.sh). Release builds ignore them.
 ///
-///   -PlumeInitialTab favorites       tab shown at launch
+///   -PlumeInitialTab favorites       Mac: section shown at launch
+///   -PlumeSearch "lisbon"            search typed at launch
 ///   -PlumeInitialPath "Lisbon 2026"  folder opened in the Files tab
 ///   -PlumePreview "Taxes/x.pdf"      file shown in Quick Look
 ///   -PlumePin "Lisbon 2026"          made available offline
@@ -22,21 +23,16 @@ enum DebugLaunch {
         #endif
     }
 
-    static var initialTab: MainView.Section {
-        value("PlumeInitialTab").flatMap(MainView.Section.init(rawValue:)) ?? .files
+    static var initialSection: AppModel.Section {
+        value("PlumeInitialTab").flatMap(AppModel.Section.init(rawValue:)) ?? .files
     }
 
     /// The folder and its parents, as a navigation stack.
     static var initialPath: [RemotePath] {
-        guard let raw = value("PlumeInitialPath") else { return [] }
-        var chain: [RemotePath] = []
-        var current: RemotePath? = RemotePath(raw)
-        while let folder = current, !folder.isRoot {
-            chain.insert(folder, at: 0)
-            current = folder.parent
-        }
-        return chain
+        value("PlumeInitialPath").map { RemotePath($0).ancestry } ?? []
     }
+
+    static var initialSearch: String { value("PlumeSearch") ?? "" }
 
     static var preview: RemotePath? { value("PlumePreview").map(RemotePath.init) }
     static var pin: RemotePath? { value("PlumePin").map(RemotePath.init) }

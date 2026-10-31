@@ -1,5 +1,6 @@
 import Foundation
 @testable import PlumeKit
+import Synchronization
 import Testing
 
 /// Against a real Nextcloud, only when one is given (scripts/test-server.sh
@@ -155,6 +156,33 @@ struct ServerTests {
             repository.removeFromOffline(folder)
             #expect(!repository.files.isAvailableOffline(photo))
             #expect(repository.files.existingCopy(of: photo) != nil)
+        }
+    }
+
+    @Test func syncTreeMirrorsEverythingAndReportsChanges() async throws {
+        let collected = Mutex<[Repository.Changes]>([])
+        let temp = FileManager.default.temporaryDirectory.appending(path: "plume-tree-\(UUID().uuidString)")
+        let watched = Repository(
+            client: repository.client, store: try MetadataStore(url: temp.appending(path: "store.sqlite")),
+            files: LocalFiles(container: temp, caches: temp.appending(path: "Caches")),
+            onChange: { changes in collected.withLock { $0.append(changes) } })
+        try await inBase {
+            let a = try await watched.createFolder(named: "A", in: base)
+            let b = try await watched.createFolder(named: "B", in: a.path)
+            let file = try temporaryFile("deep.txt", bytes: 5)
+            try await watched.client.upload(file, to: b.path.appending("Été.txt"), overwrite: false)
+
+            #expect(try await watched.syncTree(from: base) == 3)
+            #expect(watched.store.search("ete").map(\.path) == [b.path.appending("Été.txt")])
+            #expect(collected.withLock { $0 }.flatMap(\.updated).contains { $0.name == "Été.txt" })
+
+            // Nothing changed: only the starting folder is listed again.
+            #expect(try await watched.syncTree(from: base) == 1)
+
+            try await watched.client.delete(b.path)
+            collected.withLock { $0 = [] }
+            try await watched.syncTree(from: base)
+            #expect(Set(collected.withLock { $0 }.flatMap(\.removed).map(\.name)) == ["B", "Été.txt"])
         }
     }
 }

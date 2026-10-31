@@ -16,12 +16,12 @@ struct FolderView: View {
     @State private var creatingFolder = false
     @State private var folderName = ""
     @State private var dropTargeted = false
-    @State private var search = ""
 
     var body: some View {
+        @Bindable var model = model
         Group {
-            if !search.isEmpty {
-                SearchResults(term: search)
+            if !model.searchText.isEmpty {
+                SearchResults(term: model.searchText)
             } else {
                 ItemList(items: items)
                     .overlay {
@@ -33,7 +33,7 @@ struct FolderView: View {
             }
         }
         .navigationTitle(path.isRoot ? "Files" : path.name)
-        .searchable(text: $search, prompt: "Search")
+        .searchable(text: $model.searchText, prompt: "Search all files")
         .refreshable { await refresh() }
         .task(id: model.revision) { await refresh() }
         .safeAreaInset(edge: .top) {
@@ -96,7 +96,8 @@ struct FolderView: View {
     }
 }
 
-/// Results from the local mirror at once, then from the server.
+/// Results from the local mirror, at each keystroke. Until every folder has
+/// been listed once (first run), the server's search completes them.
 struct SearchResults: View {
     let term: String
     @Environment(AppModel.self) private var model
@@ -111,11 +112,13 @@ struct SearchResults: View {
             .task(id: term) {
                 guard let repository = model.repository else { return }
                 items = repository.store.search(term)
+                guard !model.indexComplete else { return }
                 searching = true
                 defer { searching = false }
                 try? await Task.sleep(for: .milliseconds(300))
                 guard !Task.isCancelled, let remote = try? await repository.client.search(term) else { return }
-                items = remote
+                let local = Set(items.map(\.path))
+                items += remote.filter { !local.contains($0.path) }
             }
     }
 }

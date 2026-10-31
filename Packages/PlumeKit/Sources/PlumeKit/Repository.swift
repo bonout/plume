@@ -6,11 +6,22 @@ public final class Repository: Sendable {
     public let client: NextcloudClient
     public let store: MetadataStore
     public let files: LocalFiles
+    /// Told about every item that appears, changes or disappears locally,
+    /// whatever caused it (a folder opened, a sync, an upload…): what keeps
+    /// Spotlight in step.
+    private let onChange: (@Sendable (Changes) -> Void)?
 
-    public init(client: NextcloudClient, store: MetadataStore, files: LocalFiles = LocalFiles()) {
+    public init(client: NextcloudClient, store: MetadataStore, files: LocalFiles = LocalFiles(),
+                onChange: (@Sendable (Changes) -> Void)? = nil) {
         self.client = client
         self.store = store
         self.files = files
+        self.onChange = onChange
+    }
+
+    private func notify(updated: [RemoteItem] = [], removed: [RemoteItem] = []) {
+        guard let onChange, !(updated.isEmpty && removed.isEmpty) else { return }
+        onChange(Changes(updated: updated, removed: removed))
     }
 
     public struct Listing: Sendable {
@@ -24,8 +35,11 @@ public final class Repository: Sendable {
     @discardableResult
     public func refresh(_ path: RemotePath) async throws -> Listing {
         let (folder, children) = try await client.list(path)
+        let before = onChange == nil ? [:] : Dictionary(store.children(of: path).map { ($0.path, $0) },
+                                                         uniquingKeysWith: { a, _ in a })
         let removed = store.replaceChildren(of: folder, with: children)
         for item in removed where !item.isDirectory { files.removeCopies(fileID: item.fileID) }
+        notify(updated: children.filter { before[$0.path] != $0 }, removed: removed)
         return Listing(folder: folder, children: children, removed: removed)
     }
 
@@ -35,6 +49,50 @@ public final class Repository: Sendable {
         public var removed: [RemoteItem] = []
         /// The etag of the starting folder after the walk.
         public var etag: String = ""
+
+        public init(updated: [RemoteItem] = [], removed: [RemoteItem] = [], etag: String = "") {
+            self.updated = updated
+            self.removed = removed
+            self.etag = etag
+        }
+    }
+
+    /// Mirrors the whole tree below `path`: lists every folder whose
+    /// contents changed since its last listing (all of them the first time),
+    /// several at a time. Once everything is known, one request when nothing
+    /// changed. Returns how many folders were listed.
+    @discardableResult
+    public func syncTree(from path: RemotePath = .root, concurrency: Int = 6) async throws -> Int {
+        var pending = [path]
+        var running = 0
+        var listed = 0
+        try await withThrowingTaskGroup(of: (listed: Bool, folders: [RemotePath]).self) { group in
+            while !pending.isEmpty || running > 0 {
+                while running < concurrency, let folder = pending.popLast() {
+                    running += 1
+                    group.addTask { try await self.visit(folder, force: folder == path) }
+                }
+                guard let result = try await group.next() else { break }
+                running -= 1
+                if result.listed { listed += 1 }
+                pending += result.folders
+            }
+        }
+        return listed
+    }
+
+    /// Lists a folder if its contents changed; returns its subfolders.
+    private func visit(_ folder: RemotePath, force: Bool) async throws -> (listed: Bool, folders: [RemotePath]) {
+        if !force, let item = store.item(at: folder), store.listedEtag(of: folder) == item.etag {
+            return (false, store.children(of: folder).filter(\.isDirectory).map(\.path))
+        }
+        do {
+            let listing = try await refresh(folder)
+            return (true, listing.children.filter(\.isDirectory).map(\.path))
+        } catch PlumeError.notFound {
+            // Gone meanwhile: its parent's next listing forgets it.
+            return (false, [])
+        }
     }
 
     /// Finds what changed below `path` since the store last saw it, by
@@ -117,18 +175,7 @@ public final class Repository: Sendable {
             try await keepOfflineCopy(of: item)
             return
         }
-        // List every folder whose contents moved since its last listing (all
-        // of them the first time), then fetch the files that changed.
-        var folders = [path]
-        while let folder = folders.popLast() {
-            let current = store.item(at: folder)
-            if let current, store.listedEtag(of: folder) == current.etag, folder != path {
-                folders += store.children(of: folder).filter(\.isDirectory).map(\.path)
-                continue
-            }
-            let listing = try await refresh(folder)
-            folders += listing.children.filter(\.isDirectory).map(\.path)
-        }
+        try await syncTree(from: path)
         for file in store.subtree(of: path) where !file.isDirectory {
             try await keepOfflineCopy(of: file)
         }
@@ -160,6 +207,7 @@ public final class Repository: Sendable {
                 let item = try await client.upload(file, to: folder.appending(candidate), overwrite: false,
                                                    progress: progress)
                 store.upsert(item)
+                notify(updated: [item])
                 return item
             } catch PlumeError.alreadyExists {
                 continue
@@ -171,14 +219,18 @@ public final class Repository: Sendable {
     public func createFolder(named name: String, in folder: RemotePath) async throws -> RemoteItem {
         let item = try await client.createFolder(at: folder.appending(name))
         store.upsert(item)
+        notify(updated: [item])
         return item
     }
 
     public func rename(_ item: RemoteItem, to name: String) async throws -> RemoteItem {
         let parent = item.path.parent ?? .root
         let moved = try await client.move(item.path, to: parent.appending(name))
-        store.remove(item.path)
+        let removed = store.remove(item.path)
         store.upsert(moved)
+        // Same file id: Spotlight replaces the entry; what was below a
+        // renamed folder comes back with its next listing.
+        notify(updated: [moved], removed: removed.filter { $0.fileID != moved.fileID })
         if store.pinnedPaths().contains(item.path) {
             store.unpin(item.path)
             store.pin(moved.path)
@@ -188,9 +240,11 @@ public final class Repository: Sendable {
 
     public func delete(_ item: RemoteItem) async throws {
         try await client.delete(item.path)
-        for removed in store.remove(item.path) where !removed.isDirectory {
-            files.removeCopies(fileID: removed.fileID)
+        let removed = store.remove(item.path)
+        for file in removed where !file.isDirectory {
+            files.removeCopies(fileID: file.fileID)
         }
+        notify(removed: removed)
         store.unpin(item.path)
     }
 
@@ -199,6 +253,7 @@ public final class Repository: Sendable {
         var updated = item
         updated.isFavorite = favorite
         store.upsert(updated)
+        notify(updated: [updated])
         return updated
     }
 }
