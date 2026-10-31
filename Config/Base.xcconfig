@@ -1,0 +1,19 @@
+// Build settings shared by every target. Nothing personal here: your Apple
+// team and bundle identifier prefix go in Config/Local.xcconfig (never
+// committed), written by scripts/configure.sh.
+
+// Prefix of every bundle identifier: <prefix>, <prefix>.fileprovider,
+// <prefix>.share. Bundle identifiers are unique at Apple: set your own.
+PLUME_BUNDLE_PREFIX = dev.plume.example
+
+// The app group shared by the app and its extensions (account, metadata,
+// offline files, outbox). On iPhone it must exist on developer.apple.com
+// (Identifiers → App Groups) for a device build; on the Mac a group prefixed
+// with the team needs no registration.
+PLUME_IOS_APP_GROUP = group.$(PLUME_BUNDLE_PREFIX)
+PLUME_MAC_APP_GROUP = $(TeamIdentifierPrefix)$(PLUME_BUNDLE_PREFIX)
+
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+#include? "Local.xcconfig"

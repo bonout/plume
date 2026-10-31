@@ -1,0 +1,53 @@
+<!--{"title": "FAQ Plume : app Nextcloud pour iPhone, iPad et Mac", "description": "Réponses sur Plume : ce que c'est, les serveurs Nextcloud compatibles, la connexion, le Finder et Fichiers, le hors-ligne, la confidentialité, les limites et l'installation.", "schema": "faq"}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h1>Questions sur Plume.</h1>
+  </div>
+</header>
+
+<article class="prose">
+<section class="faq">
+  <h3>Qu'est-ce que Plume ?</h3>
+  <p>Plume est un client Nextcloud gratuit et open source pour iPhone, iPad et Mac. C'est une app SwiftUI native, sans dépendance tierce : elle affiche vos fichiers instantanément depuis une copie locale, cherche dans tout votre compte à la frappe, et place votre Nextcloud dans le Finder et l'app Fichiers.</p>
+
+  <h3>Avec quels serveurs Nextcloud fonctionne-t-il ?</h3>
+  <p>N'importe quel serveur Nextcloud auquel vous pouvez vous connecter, auto-hébergé ou chez un hébergeur. Plume n'utilise que les protocoles standard de Nextcloud (WebDAV pour les fichiers, OCS pour le reste) : rien à installer sur le serveur.</p>
+
+  <h3>Comment se connecter ?</h3>
+  <p>Saisissez l'adresse de votre serveur (par exemple cloud.example.com). Plume ouvre le Login Flow de Nextcloud dans votre navigateur : vous vous connectez comme d'habitude, double authentification comprise, puis vous autorisez l'app. Vous pouvez aussi utiliser un mot de passe d'application créé dans les réglages de sécurité de Nextcloud.</p>
+
+  <h3>Où est stocké mon mot de passe ?</h3>
+  <p>Avec le Login Flow, Plume ne voit jamais le mot de passe de votre compte : Nextcloud lui remet un mot de passe d'application, rangé dans le trousseau. À la déconnexion, Plume révoque ce mot de passe d'application sur votre serveur.</p>
+
+  <h3>Comment fonctionne la recherche ?</h3>
+  <p>Plume tient un index local de tous les fichiers et dossiers de votre compte : les résultats s'affichent à la frappe, sans tenir compte des majuscules ni des accents. Vos fichiers apparaissent aussi dans Spotlight sur iPhone, iPad et Mac.</p>
+
+  <h3>Puis-je utiliser mes fichiers Nextcloud dans le Finder et l'app Fichiers ?</h3>
+  <p>Oui. Plume ajoute votre Nextcloud à côté d'iCloud Drive, dans le Finder comme dans Fichiers. Un fichier se télécharge quand vous l'ouvrez, vous pouvez le garder téléchargé, et les modifications faites dans d'autres apps sont renvoyées au serveur.</p>
+
+  <h3>Puis-je enregistrer dans Nextcloud depuis d'autres apps ?</h3>
+  <p>Oui : par la feuille de partage, « Enregistrer dans Fichiers », « Ouvrir dans… », ou en glissant des fichiers sur la fenêtre ou l'icône du Dock sur Mac. Un envoi n'écrase jamais rien : si le nom est pris, il devient « nom 2.ext ». Les gros fichiers partent par morceaux, et un envoi interrompu reprend là où il s'était arrêté.</p>
+
+  <h3>Plume fonctionne-t-il hors ligne ?</h3>
+  <p>Rendez un fichier ou un dossier entier disponible hors ligne : il reste sur l'appareil, et se met à jour quand il change sur le serveur. Les dossiers déjà ouverts s'affichent aussi sans connexion, depuis la copie locale.</p>
+
+  <h3>Plume remplace-t-il les apps Nextcloud officielles ?</h3>
+  <p>Ce n'est pas nécessaire : Plume est un autre client pour les mêmes fichiers, centré sur la navigation, la recherche et l'enregistrement de fichiers sur les appareils Apple. Les apps officielles en font plus, comme plusieurs comptes ou l'envoi automatique des photos. Les deux s'installent côte à côte. Voir <a href="/fr/alternative-client-nextcloud/">Plume ou les apps officielles</a>.</p>
+
+  <h3>Quelles sont les limites actuelles ?</h3>
+  <p>Un seul compte à la fois. Les changements faits ailleurs arrivent dans le Finder et Fichiers quand Plume est ouvert : pas de notification push du serveur ni d'actualisation en arrière-plan pour l'instant.</p>
+
+  <h3>Comment installer Plume ?</h3>
+  <p>Plume n'est pas encore sur l'App Store. Compilez-le depuis le code source avec Xcode 16 ou ultérieur et XcodeGen, en suivant le README sur GitHub. La version pour le simulateur iPhone ne demande pas de compte Apple ; celles pour Mac, iPhone et iPad demandent une équipe de développement.</p>
+
+  <h3>Plume est-il gratuit ?</h3>
+  <p>Oui. Plume est gratuit et open source, sous licence GPL-3.0 ou ultérieure.</p>
+
+  <h3>Plume collecte-t-il des données ?</h3>
+  <p>Non. Plume n'a ni statistiques d'usage ni compte à lui, et ne se connecte à aucun autre serveur que votre Nextcloud. Voir la <a href="/fr/confidentialite/">politique de confidentialité</a>.</p>
+
+  <h3>Qui fait Plume ?</h3>
+  <p>Plume est un projet open source indépendant publié par Bonout. Il n'est pas affilié à Nextcloud GmbH. Nextcloud est une marque de Nextcloud GmbH.</p>
+</section>
+</article>

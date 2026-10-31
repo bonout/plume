@@ -1,0 +1,32 @@
+<!--{"title": "Plume privacy policy", "description": "Plume collects nothing: no account, no analytics, no tracking. It talks only to your own Nextcloud server, and keeps its app password in the Keychain."}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Privacy</div>
+    <h1>Privacy policy.</h1>
+  </div>
+</header>
+
+<article class="prose">
+  <p>Last updated: 2026-10-31.</p>
+
+  <p>Plume is a client for a Nextcloud server that you choose: your own, or one run by someone you trust. Plume's developers operate no server, collect no data and have no access to your files.</p>
+
+  <h2>What Plume collects</h2>
+  <p>Nothing. Plume has no account of its own, no analytics, no advertising, no crash reporting and no tracking, and contains no third-party code.</p>
+
+  <h2>Where your data goes</h2>
+  <ul>
+    <li><strong>Your Nextcloud server</strong>, and only it: Plume lists, downloads and uploads your files, fetches their thumbnails, and reads or changes favorites and share links through Nextcloud's standard WebDAV and OCS interfaces. Your server's operator is responsible for what it stores.</li>
+    <li><strong>Your browser</strong>, when you sign in with Nextcloud's Login Flow: Plume opens your server's login page there, and you sign in to your server directly. Plume never sees your account password.</li>
+  </ul>
+
+  <h2>On your device</h2>
+  <ul>
+    <li><strong>The app password</strong> that Nextcloud gives Plume is stored in the Keychain. When you sign out, Plume asks your server to revoke it, then deletes it from the device.</li>
+    <li><strong>A local mirror</strong> of your file list (names, sizes, dates), cached thumbnails, and the files you open or keep offline stay on the device, so folders open instantly and search works. Signing out deletes them.</li>
+    <li><strong>Spotlight</strong>: the names, kinds, dates and sizes of your files and folders, and their thumbnails, are added to the device's Spotlight index so you can find them from the system search. This index stays on the device and is cleared when you sign out.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>Questions: open an issue at <a href="https://github.com/bonout/plume/issues">https://github.com/bonout/plume/issues</a>. The source code, which shows every connection Plume makes, is at <a href="https://github.com/bonout/plume">github.com/bonout/plume</a>.</p>
+</article>
