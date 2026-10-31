@@ -71,6 +71,9 @@ struct RootView: View {
         } message: {
             Text(model.errorMessage ?? "")
         }
+        #if os(macOS)
+        .task { await DebugLaunch.takeSnapshot() }
+        #endif
         .task(id: scenePhase) {
             // While the app is in front: sync now, then every minute.
             guard scenePhase == .active else { return }
@@ -83,21 +86,26 @@ struct RootView: View {
 }
 
 struct MainView: View {
+    enum Section: String, Hashable {
+        case files, favorites, offline, settings
+    }
+
     @Environment(AppModel.self) private var model
+    @State private var selection = DebugLaunch.initialTab
 
     var body: some View {
-        TabView {
-            Tab("Files", systemImage: "folder") {
-                BrowserStack { FolderView(path: .root) }
+        TabView(selection: $selection) {
+            Tab("Files", systemImage: "folder", value: .files) {
+                BrowserStack(initialPath: DebugLaunch.initialPath) { FolderView(path: .root) }
             }
-            Tab("Favorites", systemImage: "star") {
+            Tab("Favorites", systemImage: "star", value: .favorites) {
                 BrowserStack { FavoritesView() }
             }
-            Tab("Offline", systemImage: "arrow.down.circle") {
+            Tab("Offline", systemImage: "arrow.down.circle", value: .offline) {
                 BrowserStack { OfflineView() }
             }
             #if os(iOS)
-            Tab("Settings", systemImage: "gear") {
+            Tab("Settings", systemImage: "gear", value: .settings) {
                 NavigationStack { SettingsView() }
             }
             #endif
@@ -112,7 +120,12 @@ struct MainView: View {
 /// A navigation stack whose pushed screens are folders.
 struct BrowserStack<Root: View>: View {
     @ViewBuilder let root: () -> Root
-    @State private var path: [RemotePath] = []
+    @State private var path: [RemotePath]
+
+    init(initialPath: [RemotePath] = [], @ViewBuilder root: @escaping () -> Root) {
+        self.root = root
+        _path = State(initialValue: initialPath)
+    }
 
     var body: some View {
         NavigationStack(path: $path) {

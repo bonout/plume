@@ -49,7 +49,11 @@ final class AppModel {
               let password = defaults.string(forKey: "PlumeTestPassword") else { return }
         Task {
             do {
-                try signIn(try await LoginFlow.complete(server: server, loginName: user, appPassword: password))
+                let credentials = try await LoginFlow.complete(server: server, loginName: user, appPassword: password)
+                // Without a provisioning profile (Mac build with no Apple
+                // account in Xcode) the keychain refuses: stay signed in for
+                // this run only.
+                do { try signIn(credentials) } catch { activate(credentials) }
             } catch {
                 report(error)
             }
@@ -73,6 +77,7 @@ final class AppModel {
         repository = Repository(client: NextcloudClient(credentials: credentials), store: store)
         Task {
             await FileProviderControl.register()
+            await DebugLaunch.apply(to: self)
             await sync()
         }
     }
@@ -217,7 +222,7 @@ final class AppModel {
     }
 
     func report(_ error: Error) {
-        if error is CancellationError { return }
+        if error is CancellationError || (error as? URLError)?.code == .cancelled { return }
         Logger(subsystem: "Plume", category: "App").error("\(error, privacy: .public)")
         errorMessage = error.localizedDescription
     }

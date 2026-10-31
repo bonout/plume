@@ -355,8 +355,9 @@ public final class NextcloudClient: Sendable {
         let (data, response): (Data, URLResponse)
         do {
             (data, response) = try await session.data(for: request)
-        } catch let error as URLError where error.code != .cancelled {
-            throw PlumeError.offline
+        } catch let error as URLError {
+            // A request cancelled with its task is not a failure to report.
+            throw error.code == .cancelled ? CancellationError() : PlumeError.offline
         }
         try check(response, data: data)
         return data
