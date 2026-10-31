@@ -45,6 +45,10 @@ public final class MetadataStore: Sendable {
         try MetadataStore(url: AppGroup.containerURL.appending(path: "Metadata/\(name).sqlite"))
     }
 
+    public static func removeAllDatabases() {
+        try? FileManager.default.removeItem(at: AppGroup.containerURL.appending(path: "Metadata", directoryHint: .isDirectory))
+    }
+
     // MARK: Reading
 
     public func item(at path: RemotePath) -> RemoteItem? {
@@ -59,6 +63,11 @@ public final class MetadataStore: Sendable {
         query("SELECT \(Self.columns) FROM items WHERE parent = ? AND path != '' ORDER BY is_dir DESC, path",
               [path.rawValue])
             .sorted(by: Self.displayOrder)
+    }
+
+    public func children(of path: RemotePath, limit: Int, offset: Int) -> [RemoteItem] {
+        query("SELECT \(Self.columns) FROM items WHERE parent = ? AND path != '' ORDER BY path LIMIT ? OFFSET ?",
+              [path.rawValue, limit, offset])
     }
 
     /// The folder's etag at its last listing; `nil` if never listed.

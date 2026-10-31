@@ -31,7 +31,16 @@ public struct LoginFlow: Sendable {
         var request = URLRequest(url: server.appending(path: "index.php/login/v2"))
         request.httpMethod = "POST"
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch let error as URLError {
+            throw PlumeError.from(error)
+        }
+        if let http = response as? HTTPURLResponse, http.statusCode == 503,
+           http.value(forHTTPHeaderField: "X-Nextcloud-Maintenance-Mode") != nil {
+            throw PlumeError.maintenance
+        }
         guard (response as? HTTPURLResponse)?.statusCode == 200,
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let poll = json["poll"] as? [String: Any],
@@ -39,7 +48,7 @@ public struct LoginFlow: Sendable {
               let endpoint = (poll["endpoint"] as? String).flatMap(URL.init(string:)),
               let login = (json["login"] as? String).flatMap(URL.init(string:))
         else {
-            throw PlumeError.invalidResponse("this doesn't look like a Nextcloud server")
+            throw PlumeError.notNextcloud
         }
         return LoginFlow(loginURL: login, pollURL: endpoint, token: token)
     }

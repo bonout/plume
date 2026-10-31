@@ -1,0 +1,23 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "NSLocalNetworkUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plume connects to your Nextcloud server when it is on your local network, for example a server at home."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plume se connecte à votre serveur Nextcloud quand il est sur votre réseau local, par exemple un serveur à la maison."
+          }
+        }
+      }
+    }
+  }
+}

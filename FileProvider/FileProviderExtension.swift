@@ -237,7 +237,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             case .notFound: return NSFileProviderError(.noSuchItem)
             case .alreadyExists: return NSFileProviderError(.filenameCollision)
             case .insufficientStorage: return NSFileProviderError(.insufficientQuota)
-            case .offline: return NSFileProviderError(.serverUnreachable)
+            case .offline, .maintenance, .untrustedCertificate, .notNextcloud: return NSFileProviderError(.serverUnreachable)
+            case .forbidden: return CocoaError(.fileWriteNoPermission)
             case .conflict, .http, .invalidResponse, .refused: return NSFileProviderError(.cannotSynchronize)
             }
         case let error as URLError where error.code != .cancelled:

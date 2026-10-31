@@ -13,6 +13,7 @@ struct LoginView: View {
     @State private var manual = false
     @State private var loginName = ""
     @State private var appPassword = ""
+    @State private var showingHelp = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -25,6 +26,9 @@ struct LoginView: View {
                 Text("Plume").font(.largeTitle.bold())
                 Text("A light client for your Nextcloud.").foregroundStyle(.secondary)
             }
+
+            Text("Enter the address of your Nextcloud server to sign in.")
+                .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
 
             VStack(spacing: 12) {
                 TextField("Server address", text: $server, prompt: Text("cloud.example.com"))
@@ -75,10 +79,27 @@ struct LoginView: View {
 
             if let error {
                 Text(error).font(.callout).foregroundStyle(.red).multilineTextAlignment(.center)
+                    .frame(maxWidth: 420)
             }
+
+            Button("What is Nextcloud?", systemImage: "questionmark.circle") { showingHelp = true }
+                .buttonStyle(.borderless)
+                .font(.callout)
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear { if server.isEmpty { server = model.lastServer } }
+        .sheet(isPresented: $showingHelp) {
+            NavigationStack {
+                NextcloudHelp()
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) { Button("Done") { showingHelp = false } }
+                    }
+            }
+            #if os(macOS)
+            .frame(width: 440, height: 420)
+            #endif
+        }
     }
 
     private func signIn() {
@@ -96,6 +117,8 @@ struct LoginView: View {
                 }
                 try model.signIn(credentials)
             } catch is CancellationError {
+            } catch PlumeError.unauthorized where manual {
+                self.error = "Wrong login or app password. With two-factor authentication, your account password won't work here: create an app password in Nextcloud under Settings → Security, or sign in with the browser."
             } catch {
                 self.error = error.localizedDescription
             }
@@ -106,5 +129,24 @@ struct LoginView: View {
     private func cancel() {
         waiting?.cancel()
         waiting = nil
+    }
+}
+
+struct NextcloudHelp: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Nextcloud is free, open-source software for keeping your files on a server you choose: one you run at home, or one from a hosting provider. Your files stay on that server, not with a big tech company.")
+                Text("Plume is an app for your Nextcloud: it shows the files of your account, finds them as you type, keeps the ones you choose on this device, and puts them in Files and Finder.")
+                Text("To use Plume you need a Nextcloud account. Enter the address you use to open Nextcloud in a browser, then sign in there: Plume receives its own app password, which you can revoke at any time.")
+                Link("Learn more about Nextcloud", destination: URL(string: "https://nextcloud.com/files/")!)
+                Link("Find a Nextcloud provider", destination: URL(string: "https://nextcloud.com/providers/")!)
+                Text("Plume is an independent app, not affiliated with Nextcloud GmbH.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .navigationTitle("What is Nextcloud?")
     }
 }
