@@ -63,6 +63,11 @@ open Plume.xcodeproj
   Xcode → Settings → Accounts. Spotlight also needs a signed build.
 - **iPhone device**: also create the app group `group.<bundle prefix>` on
   developer.apple.com (Identifiers → App Groups) before the first build.
+- **TestFlight**: create the app in App Store Connect (bundle identifier
+  `<bundle prefix>`), then `scripts/testflight-ios.sh` archives and uploads it,
+  with the Apple account signed in to Xcode or an App Store Connect API key.
+  The TestFlight workflow (Actions tab) does the same from GitHub, with the
+  secrets listed in `.github/workflows/testflight.yml`.
 
 ## Tests
 

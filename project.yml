@@ -30,6 +30,8 @@ targetTemplates:
     type: application
     sources:
       - path: App
+      - path: Config/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: PlumeKit
         product: PlumeKit
@@ -47,6 +49,9 @@ targetTemplates:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         LSApplicationCategoryType: public.app-category.productivity
+        # Only HTTPS (exempt encryption): no export compliance question on
+        # each TestFlight upload.
+        ITSAppUsesNonExemptEncryption: false
         # "Search in App" from Spotlight results.
         CoreSpotlightContinuation: true
         # Any file can be opened in Plume ("Open in…", drop on the Dock
@@ -66,6 +71,8 @@ targetTemplates:
     type: app-extension
     sources:
       - path: FileProvider
+      - path: Config/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: PlumeKit
         product: PlumeKit
@@ -95,6 +102,8 @@ targetTemplates:
     type: app-extension
     sources:
       - path: ShareExtension
+      - path: Config/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: PlumeKit
         product: PlumeKit

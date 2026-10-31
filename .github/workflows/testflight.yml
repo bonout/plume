@@ -1,0 +1,67 @@
+# Uploads the iPhone/iPad app to TestFlight, from the Actions tab (Run
+# workflow) or on a version tag. Everything personal comes from the
+# `release` environment of the repository, never from the code:
+#
+# Variables: PLUME_BUNDLE_PREFIX (the prefix of the bundle identifiers).
+# Secrets:
+# - APPLE_TEAM_ID;
+# - ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8: an App Store Connect API key with
+#   the Admin role (Users and Access › Integrations); ASC_KEY_P8 is the
+#   content of the .p8 file;
+# - APPLE_DEVELOPMENT_P12, APPLE_DEVELOPMENT_PASSWORD: the team's existing
+#   Apple Development certificate and its private key (.p12, base64). iOS
+#   needs a profile for every extension even to archive, so the runner must
+#   sign; without it, Xcode creates a new certificate on every run.
+name: TestFlight
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: iPhone app (TestFlight)
+    runs-on: macos-15
+    environment: release
+    env:
+      PLUME_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+      PLUME_BUNDLE_PREFIX: ${{ vars.PLUME_BUNDLE_PREFIX }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      DEV_CERT_P12: ${{ secrets.APPLE_DEVELOPMENT_P12 }}
+      DEV_CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_PASSWORD }}
+    steps:
+      - if: env.PLUME_TEAM == '' || env.PLUME_BUNDLE_PREFIX == '' || env.ASC_KEY_P8 == ''
+        run: |
+          echo "::error::The release environment needs APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 and the PLUME_BUNDLE_PREFIX variable."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)" && brew install xcodegen
+      # Signing material only lives for this job: a throwaway keychain and key file.
+      - if: env.DEV_CERT_P12 != ''
+        run: |
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          password="$(openssl rand -hex 16)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "$DEV_CERT_P12" | base64 --decode > "$RUNNER_TEMP/dev.p12"
+          security import "$RUNNER_TEMP/dev.p12" -k "$keychain" -P "$DEV_CERT_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/dev.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+      - run: |
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/asc.p8"
+          ASC_KEY_PATH="$RUNNER_TEMP/asc.p8" scripts/testflight-ios.sh
+      - if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/asc.p8"
