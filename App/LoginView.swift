@@ -88,7 +88,7 @@ struct LoginView: View {
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { if server.isEmpty { server = model.lastServer } }
+        .onAppear { if server.isEmpty { server = DebugLaunch.serverField ?? model.lastServer } }
         .sheet(isPresented: $showingHelp) {
             NavigationStack {
                 NextcloudHelp()

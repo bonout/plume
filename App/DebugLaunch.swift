@@ -45,6 +45,10 @@ enum DebugLaunch {
         }
     }
 
+    static var resetAccount: Bool { value("PlumeResetAccount") == "YES" }
+    static var importSample: String? { value("PlumeImportSample") }
+    static var serverField: String? { value("PlumeServerField") }
+
     static var snapshot: URL? { value("PlumeSnapshot").map { URL(filePath: $0) } }
 
     /// Applies the arguments that act on the account once signed in.
@@ -53,6 +57,12 @@ enum DebugLaunch {
         guard let repository = model.repository else { return }
         if let pin, let item = try? await repository.client.item(at: pin) {
             try? await repository.makeAvailableOffline(item)
+        }
+        if let importSample {
+            let url = FileManager.default.temporaryDirectory.appending(path: importSample)
+            try? Data("Plume".utf8).write(to: url)
+            try? await Task.sleep(for: .seconds(2))
+            model.pendingImports = [url]
         }
         if let preview, let item = try? await repository.client.item(at: preview) {
             // After the initial navigation, or Quick Look is dropped.

@@ -1,0 +1,1 @@
+webdav,cloud,files,self-hosted,sync,offline,storage,documents,pdf,photos,file manager,drive,private

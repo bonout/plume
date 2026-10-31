@@ -1,0 +1,29 @@
+Plume est une app légère et rapide pour les fichiers de votre serveur Nextcloud. Elle ouvre les dossiers instantanément, trouve n'importe quel fichier dès la frappe, et place vos fichiers dans l'app Fichiers, le Finder et Spotlight, sans la lourdeur d'un client de synchronisation complet.
+
+INSTANTANÉ
+• Les dossiers s'ouvrent tout de suite depuis une copie locale de la liste des fichiers, puis se mettent à jour en arrière-plan.
+• Cherchez dans tout le compte dès la frappe, sans tenir compte des majuscules ni des accents : « electricite » trouve « Facture d'électricité.pdf ».
+• Retrouvez vos fichiers depuis Spotlight sur iPhone, iPad et Mac.
+
+PARTOUT OÙ VOUS TRAVAILLEZ
+• Votre Nextcloud apparaît dans l'app Fichiers et dans le Finder, à côté d'iCloud Drive, avec les vignettes.
+• Les fichiers se téléchargent à l'ouverture ; les modifications faites dans n'importe quelle app sont envoyées.
+• Enregistrez dans Plume depuis n'importe quelle app : feuille de partage, « Enregistrer dans Fichiers », « Ouvrir dans… », ou glisser-déposer sur Mac.
+
+HORS LIGNE
+• Gardez des fichiers ou des dossiers entiers sur l'appareil. Ils restent à jour et s'ouvrent sans connexion.
+• Les envois passent par une file d'attente : si la connexion coupe, ils partent plus tard, et rien n'est jamais écrasé.
+
+TOUT CE QU'ON ATTEND
+• Coup d'œil pour les PDF, photos, vidéos, sons et documents Office.
+• Liens publics avec mot de passe et date d'expiration, et partage avec les personnes de votre serveur.
+• Versions précédentes d'un fichier, fichiers supprimés, favoris, renommer et déplacer.
+
+PRIVÉ PAR CONCEPTION
+• Plume ne parle qu'à votre serveur. Pas de compte chez nous, pas de statistiques, pas de publicité, pas de pistage.
+• Vous vous connectez via votre Nextcloud dans le navigateur, double authentification comprise. Plume reçoit son propre mot de passe d'application, révocable à tout moment, et révoqué à la déconnexion.
+• Gratuit et open source (GPL-3.0).
+
+Plume nécessite un serveur Nextcloud : le vôtre, ou celui d'un hébergeur.
+
+Plume est une app indépendante, sans lien avec Nextcloud GmbH ni approuvée par elle. Nextcloud est une marque de Nextcloud GmbH.

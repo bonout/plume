@@ -1,0 +1,1 @@
+Your Nextcloud files, instantly: folders open at once, search finds any file as you type, and everything shows up in Files, Finder and Spotlight.
