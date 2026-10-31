@@ -4,7 +4,9 @@ import Foundation
 /// Stateless apart from its URL session; safe to share between tasks.
 public final class NextcloudClient: Sendable {
     public let account: Account
-    private let session: URLSession
+    /// For the push channel, which authenticates with its first messages.
+    let credentials: Credentials
+    let session: URLSession
     private let authorization: String
 
     /// Files above this size are sent in chunks (resumable server side, and
@@ -22,6 +24,7 @@ public final class NextcloudClient: Sendable {
 
     public init(credentials: Credentials, userAgent: String = NextcloudClient.defaultUserAgent) {
         account = credentials.account
+        self.credentials = credentials
         let token = Data("\(credentials.account.loginName):\(credentials.appPassword)".utf8).base64EncodedString()
         authorization = "Basic \(token)"
         let configuration = URLSessionConfiguration.default
@@ -82,15 +85,19 @@ public final class NextcloudClient: Sendable {
     }
 
     private func propfind(_ url: URL, depth: String) async throws -> [RemoteItem] {
+        let data = try await propfindData(url, depth: depth, properties: Self.davProperties)
+        return try DAVParser.parse(data, filesRoot: filesURL.path(percentEncoded: false))
+    }
+
+    func propfindData(_ url: URL, depth: String, properties: String) async throws -> Data {
         var request = request(url, method: "PROPFIND")
         request.setValue(depth, forHTTPHeaderField: "Depth")
         request.setValue("application/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("""
             <?xml version="1.0" encoding="UTF-8"?>
-            <d:propfind \(Self.namespaces)>\(Self.davProperties)</d:propfind>
+            <d:propfind \(Self.namespaces)>\(properties)</d:propfind>
             """.utf8)
-        let data = try await send(request)
-        return try DAVParser.parse(data, filesRoot: filesURL.path(percentEncoded: false))
+        return try await send(request)
     }
 
     /// Files and folders whose name contains `term`, anywhere in the account.
@@ -320,7 +327,7 @@ public final class NextcloudClient: Sendable {
         _ = try await ocs("ocs/v2.php/core/apppassword", method: "DELETE")
     }
 
-    private func ocs(_ endpoint: String, method: String, query: [URLQueryItem] = [],
+    func ocs(_ endpoint: String, method: String, query: [URLQueryItem] = [],
                      form: [String: String]? = nil) async throws -> Any? {
         var components = URLComponents(url: account.server.appending(path: endpoint), resolvingAgainstBaseURL: false)!
         components.queryItems = query + [.init(name: "format", value: "json")]
@@ -334,24 +341,33 @@ public final class NextcloudClient: Sendable {
             request.httpBody = Data((body.percentEncodedQuery ?? "")
                 .replacingOccurrences(of: "+", with: "%2B").utf8)
         }
-        let data = try await send(request)
-        guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let ocs = root["ocs"] as? [String: Any] else {
-            throw PlumeError.invalidResponse("OCS")
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let error as URLError {
+            throw error.code == .cancelled ? CancellationError() : PlumeError.offline
         }
+        let ocs = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["ocs"] as? [String: Any]
+        // OCS explains a refusal (a weak password, an unknown user…): show it.
+        if let status = (response as? HTTPURLResponse)?.statusCode, (400..<500).contains(status), status != 401,
+           let message = (ocs?["meta"] as? [String: Any])?["message"] as? String, !message.isEmpty {
+            throw PlumeError.refused(message)
+        }
+        try check(response, data: data)
+        guard let ocs else { throw PlumeError.invalidResponse("OCS") }
         return ocs["data"]
     }
 
     // MARK: Plumbing
 
-    private func request(_ url: URL, method: String) -> URLRequest {
+    func request(_ url: URL, method: String) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue(authorization, forHTTPHeaderField: "Authorization")
         return request
     }
 
-    private func send(_ request: URLRequest) async throws -> Data {
+    func send(_ request: URLRequest) async throws -> Data {
         let (data, response): (Data, URLResponse)
         do {
             (data, response) = try await session.data(for: request)
@@ -363,7 +379,7 @@ public final class NextcloudClient: Sendable {
         return data
     }
 
-    private func check(_ response: URLResponse, data: Data?) throws {
+    func check(_ response: URLResponse, data: Data?) throws {
         guard let http = response as? HTTPURLResponse else { throw PlumeError.invalidResponse("not HTTP") }
         switch http.statusCode {
         case 200..<300: return
@@ -377,7 +393,7 @@ public final class NextcloudClient: Sendable {
         }
     }
 
-    private func xmlEscaped(_ value: String) -> String {
+    func xmlEscaped(_ value: String) -> String {
         value.replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")

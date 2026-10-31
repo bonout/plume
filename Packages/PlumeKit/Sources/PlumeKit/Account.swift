@@ -65,6 +65,13 @@ public enum AppGroup {
     public static var cachesURL: URL {
         containerURL.appending(path: "Library/Caches", directoryHint: .isDirectory)
     }
+
+    /// The paths kept offline in the app, for the File Provider extension
+    /// (which keeps them downloaded in Finder too).
+    public static var pinnedPaths: Set<RemotePath> {
+        get { Set((defaults.stringArray(forKey: "pinnedPaths") ?? []).map(RemotePath.init)) }
+        set { defaults.set(newValue.map(\.rawValue).sorted(), forKey: "pinnedPaths") }
+    }
 }
 
 /// Where the account is kept: its description in the group's defaults, its

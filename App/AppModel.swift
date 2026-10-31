@@ -22,6 +22,8 @@ final class AppModel {
     private(set) var revision = 0
 
     let thumbnails = ThumbnailCache()
+    /// What the server offers and enforces (push, sharing rules…).
+    private(set) var capabilities = ServerCapabilities()
 
     /// The Files browser's navigation stack (Spotlight results open in it).
     var path: [RemotePath] = DebugLaunch.initialPath
@@ -33,12 +35,18 @@ final class AppModel {
     private(set) var indexComplete = AppGroup.defaults.bool(forKey: "indexComplete")
 
     enum Section: String, Hashable {
-        case files, favorites, offline
+        case files, favorites, offline, trash
     }
 
     private let spotlight = SpotlightIndex()
     private var spotlightFeed: Task<Void, Never>?
+    /// Push from the server and, on the Mac, the periodic sync.
+    private var watchers: [Task<Void, Never>] = []
     private var syncing = false
+    /// Uploads in progress and their overall progress, which keep the app
+    /// running in the background (Background).
+    private var uploadsInFlight = 0
+    private var uploadProgress = Progress()
 
     struct Transfer: Identifiable {
         let id = UUID()
@@ -103,9 +111,53 @@ final class AppModel {
             await DebugLaunch.apply(to: self)
             await sync()
         }
+        watch()
+    }
+
+    /// Follows the server: notify_push when it has it (a change anywhere
+    /// syncs within seconds), and on the Mac a sync every minute whether a
+    /// window is open or not (the app keeps running without one).
+    private func watch() {
+        watchers.forEach { $0.cancel() }
+        watchers = []
+        #if os(macOS)
+        watchers.append(Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                await self?.sync()
+            }
+        })
+        #endif
+        watchers.append(Task { [weak self] in
+            var delay: Duration = .seconds(5)
+            while !Task.isCancelled {
+                guard let self, let client = self.repository?.client else { return }
+                if let capabilities = try? await client.capabilities() {
+                    self.capabilities = capabilities
+                }
+                guard let socket = self.capabilities.pushURL else { return }
+                do {
+                    for try await _ in client.fileChanges(at: socket) {
+                        delay = .seconds(5)
+                        // Changes come in bursts: one sync for each.
+                        try await Task.sleep(for: .seconds(2))
+                        await self.sync()
+                        self.revision += 1
+                    }
+                } catch PlumeError.unauthorized {
+                    return
+                } catch {}
+                // Dropped (network, server restart, app suspended): retry,
+                // waiting longer each time, up to five minutes.
+                try? await Task.sleep(for: delay)
+                delay = min(delay * 2, .seconds(300))
+            }
+        })
     }
 
     func signOut() async {
+        watchers.forEach { $0.cancel() }
+        watchers = []
         if let repository {
             try? await repository.client.revokeAppPassword()
             repository.store.removeAll()
@@ -116,6 +168,8 @@ final class AppModel {
         await spotlight.removeAll()
         AccountStore.remove()
         AppGroup.defaults.removeObject(forKey: "indexComplete")
+        AppGroup.pinnedPaths = []
+        capabilities = ServerCapabilities()
         indexComplete = false
         credentials = nil
         repository = nil
@@ -146,6 +200,7 @@ final class AppModel {
             }
         }
         await repository.syncAllOffline()
+        AppGroup.pinnedPaths = Set(repository.store.pinnedPaths())
         repository.files.trimCache()
         FileProviderControl.signalChanges()
     }
@@ -212,8 +267,12 @@ final class AppModel {
         for job in jobs {
             let transfer = Transfer(name: job.name, isUpload: true, progress: Progress(totalUnitCount: 100))
             transfers.append(transfer)
+            uploadStarted(transfer.progress)
             Task {
-                defer { transfers.removeAll { $0.id == transfer.id } }
+                defer {
+                    transfers.removeAll { $0.id == transfer.id }
+                    uploadEnded()
+                }
                 do {
                     try await outbox.send(job, with: repository, progress: transfer.progress)
                     revision += 1
@@ -223,6 +282,26 @@ final class AppModel {
                 }
             }
         }
+    }
+
+    private func uploadStarted(_ progress: Progress) {
+        if uploadsInFlight == 0 { uploadProgress = Progress(totalUnitCount: 0) }
+        uploadsInFlight += 1
+        uploadProgress.totalUnitCount += 100
+        uploadProgress.addChild(progress, withPendingUnitCount: 100)
+        Background.shared.uploadsChanged(count: uploadsInFlight, progress: uploadProgress)
+    }
+
+    private func uploadEnded() {
+        uploadsInFlight -= 1
+        Background.shared.uploadsChanged(count: uploadsInFlight, progress: uploadProgress)
+    }
+
+    /// Something changed on the server because of the app: visible lists
+    /// reload, Finder and Files look for changes.
+    func changed() {
+        revision += 1
+        FileProviderControl.signalChanges()
     }
 
     func perform(_ action: @escaping (Repository) async throws -> Void) {
@@ -242,6 +321,7 @@ final class AppModel {
         guard let repository else { return }
         if repository.store.pinnedPaths().contains(item.path) {
             repository.removeFromOffline(item)
+            publishPins()
             revision += 1
         } else {
             let transfer = Transfer(name: item.name, isUpload: false, progress: Progress(totalUnitCount: 100))
@@ -253,9 +333,17 @@ final class AppModel {
                 } catch {
                     report(error)
                 }
+                publishPins()
                 revision += 1
             }
         }
+    }
+
+    /// Finder keeps pinned items downloaded too (File Provider).
+    private func publishPins() {
+        guard let repository else { return }
+        AppGroup.pinnedPaths = Set(repository.store.pinnedPaths())
+        FileProviderControl.signalChanges()
     }
 
     func isPinned(_ item: RemoteItem) -> Bool {

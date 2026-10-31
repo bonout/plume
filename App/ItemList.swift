@@ -14,6 +14,8 @@ struct ItemList: View {
     @State private var renaming: RemoteItem?
     @State private var newName = ""
     @State private var deleting: RemoteItem?
+    @State private var sharing: RemoteItem?
+    @State private var versions: RemoteItem?
 
     var body: some View {
         List(selection: $selection) {
@@ -58,6 +60,18 @@ struct ItemList: View {
                 guard !name.isEmpty, name != item.name else { return }
                 model.perform { _ = try await $0.rename(item, to: name) }
             }
+        }
+        .sheet(item: $sharing) { item in
+            NavigationStack { SharingView(item: item) }
+                #if os(macOS)
+                .frame(minWidth: 460, minHeight: 480)
+                #endif
+        }
+        .sheet(item: $versions) { item in
+            NavigationStack { VersionsView(item: item) }
+                #if os(macOS)
+                .frame(minWidth: 420, minHeight: 400)
+                #endif
         }
         .confirmationDialog(deleting.map { "Delete “\($0.name)”?" } ?? "",
                             isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
@@ -105,6 +119,10 @@ struct ItemList: View {
         }
         Divider()
         Button("Copy Public Link", systemImage: "link") { model.copyLink(item) }
+        Button("Share Links and Access…", systemImage: "person.crop.circle.badge.plus") { sharing = item }
+        if !item.isDirectory && model.capabilities.versions {
+            Button("Versions…", systemImage: "clock.arrow.circlepath") { versions = item }
+        }
         if !item.isDirectory {
             Button("Share…", systemImage: "square.and.arrow.up") {
                 Task { if let url = await model.localCopy(of: item) { Platform.share(url) } }

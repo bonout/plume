@@ -14,6 +14,8 @@ import SwiftUI
 ///   -PlumePreview "Taxes/x.pdf"      file shown in Quick Look
 ///   -PlumePin "Lisbon 2026"          made available offline
 ///   -PlumeSnapshot /tmp/mac.png      Mac: the window saved as PNG, then quit
+///   -PlumeSheet trash                a screen opened at launch: trash,
+///               versions:<path>, sharing:<path>
 enum DebugLaunch {
     private static func value(_ key: String) -> String? {
         #if DEBUG
@@ -36,6 +38,13 @@ enum DebugLaunch {
 
     static var preview: RemotePath? { value("PlumePreview").map(RemotePath.init) }
     static var pin: RemotePath? { value("PlumePin").map(RemotePath.init) }
+    static var sheet: (kind: String, path: RemotePath?)? {
+        value("PlumeSheet").map { value in
+            let parts = value.split(separator: ":", maxSplits: 1).map(String.init)
+            return (parts[0], parts.count > 1 ? RemotePath(parts[1]) : nil)
+        }
+    }
+
     static var snapshot: URL? { value("PlumeSnapshot").map { URL(filePath: $0) } }
 
     /// Applies the arguments that act on the account once signed in.

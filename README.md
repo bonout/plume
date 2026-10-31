@@ -19,7 +19,14 @@ dependencies, only standard WebDAV and OCS on the wire.
   iPad and Mac. A result opens the folder, or the file in Quick Look.
 - **Finder and Files**: a File Provider extension puts your Nextcloud next to
   iCloud Drive. Files are downloaded when opened, you can keep them downloaded,
-  and edits made in any app are uploaded.
+  and edits made in any app are uploaded. The server's thumbnails show before
+  anything is downloaded, and the item menu has Copy Public Link and
+  Add to / Remove from Favorites. On the Mac, what you keep offline in Plume
+  stays downloaded in Finder too.
+- **Always current**: with the server's Client Push app (notify_push), a
+  change anywhere reaches the app, Finder, Files and Spotlight within seconds.
+  Otherwise the Mac checks every minute (with or without a window open), and
+  the iPhone refreshes in the background when iOS allows it.
 - **Save from any app**: use the share sheet (Plume), "Save to Files" → Plume,
   "Open in… Plume", drag and drop onto the window or the Dock icon, or the
   + button. Uploads go through an outbox, so an interrupted upload is retried and
@@ -29,8 +36,15 @@ dependencies, only standard WebDAV and OCS on the wire.
 - **Quick Look** for PDFs, images, video, audio and Office documents. On the
   Mac you can also open a file in its default app or reveal it in Finder, and
   changes sync back.
-- Favorites synced with the server (Mac sidebar), public links, rename,
-  delete (to the server's trash bin).
+- **Sharing**: public links with a password, an expiry date, and editing or
+  upload allowed; sharing with users and groups of the server, view only or
+  editing. The server's rules (required password, maximum expiry) apply.
+- **Versions and deleted files**: look at an earlier version of a file or make
+  it current again; restore deleted files or delete them for good.
+- **Uploads that go on** after you leave the app, with the system's progress
+  on iOS 26.
+- Favorites synced with the server (Mac sidebar), rename, delete (to the
+  server's trash bin).
 - Sign-in through Nextcloud Login Flow v2 (your browser, with two-factor
   authentication), or with an app password. The app password is stored in the
   Keychain and revoked on sign-out.
@@ -63,9 +77,10 @@ open Plume.xcodeproj
   Xcode → Settings → Accounts. Spotlight also needs a signed build.
 - **iPhone device**: also create the app group `group.<bundle prefix>` on
   developer.apple.com (Identifiers → App Groups) before the first build.
-- **TestFlight**: create the app in App Store Connect (bundle identifier
-  `<bundle prefix>`), then `scripts/testflight-ios.sh` archives and uploads it,
-  with the Apple account signed in to Xcode or an App Store Connect API key.
+- **TestFlight**: create the app in App Store Connect (iOS and macOS, bundle
+  identifier `<bundle prefix>`), then `scripts/testflight.sh ios` (or `mac`)
+  archives and uploads it, with the Apple account signed in to Xcode or an App
+  Store Connect API key.
   The TestFlight workflow (Actions tab) does the same from GitHub, with the
   secrets listed in `.github/workflows/testflight.yml`.
 
@@ -81,9 +96,9 @@ server: `-PlumeTestServer http://127.0.0.1:8099 -PlumeTestUser admin -PlumeTestP
 
 ## Current limits
 
-- Changes made elsewhere reach Finder / Files when Plume is opened, and every
-  minute while it is open. There is no push from the server and no background
-  refresh yet.
+- Without notify_push on the server, changes made elsewhere reach an iPhone's
+  Files app and Spotlight only when iOS runs the background refresh (it
+  decides when, from how the app is used) or when Plume is opened.
 - Only one account.
 
 ## License

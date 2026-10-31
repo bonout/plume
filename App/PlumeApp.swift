@@ -6,7 +6,14 @@ import SwiftUI
 
 @main
 struct PlumeApp: App {
-    @State private var model = AppModel()
+    @State private var model: AppModel
+
+    init() {
+        let model = AppModel()
+        _model = State(initialValue: model)
+        Background.shared.model = model
+        Background.shared.register()
+    }
 
     var body: some Scene {
         #if os(macOS)
@@ -90,12 +97,19 @@ struct RootView: View {
         .task { await DebugLaunch.takeSnapshot() }
         #endif
         .task(id: scenePhase) {
+            #if os(iOS)
+            // Leaving the app: ask to be woken up for the next refresh.
+            if scenePhase == .background { Background.shared.scheduleRefresh() }
             // While the app is in front: sync now, then every minute.
             guard scenePhase == .active else { return }
             while !Task.isCancelled {
                 await model.sync()
                 try? await Task.sleep(for: .seconds(60))
             }
+            #else
+            // The Mac syncs every minute on its own (AppModel.watch).
+            if scenePhase == .active { await model.sync() }
+            #endif
         }
     }
 }
@@ -103,6 +117,9 @@ struct RootView: View {
 struct MainView: View {
     @Environment(AppModel.self) private var model
     @State private var showingSettings = false
+    @State private var showingTrash = false
+    @State private var debugSharing: RemoteItem?
+    @State private var debugVersions: RemoteItem?
 
     var body: some View {
         @Bindable var model = model
@@ -110,7 +127,29 @@ struct MainView: View {
             .safeAreaInset(edge: .bottom) {
                 if !model.transfers.isEmpty { TransferBar() }
             }
+            #if DEBUG
+            .task { await openDebugSheet() }
+            .sheet(item: $debugSharing) { item in NavigationStack { SharingView(item: item) } }
+            .sheet(item: $debugVersions) { item in NavigationStack { VersionsView(item: item) } }
+            #endif
     }
+
+    #if DEBUG
+    private func openDebugSheet() async {
+        guard let sheet = DebugLaunch.sheet else { return }
+        try? await Task.sleep(for: .seconds(3))
+        if sheet.kind == "trash" {
+            #if os(iOS)
+            showingTrash = true
+            #else
+            model.section = .trash
+            #endif
+            return
+        }
+        guard let path = sheet.path, let item = try? await model.repository?.client.item(at: path) else { return }
+        if sheet.kind == "sharing" { debugSharing = item } else { debugVersions = item }
+    }
+    #endif
 
     #if os(iOS)
     /// iPhone and iPad: just the files, their search, and settings behind
@@ -120,10 +159,23 @@ struct MainView: View {
         return BrowserStack(path: $model.path) {
             FolderView(path: .root)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItemGroup(placement: .topBarLeading) {
                         Button("Settings", systemImage: "gearshape") { showingSettings = true }
+                        if model.capabilities.trash {
+                            Button("Deleted Files", systemImage: "trash") { showingTrash = true }
+                        }
                     }
                 }
+        }
+        .sheet(isPresented: $showingTrash) {
+            NavigationStack {
+                TrashView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showingTrash = false }
+                        }
+                    }
+            }
         }
         .sheet(isPresented: $showingSettings) {
             NavigationStack {
@@ -149,6 +201,9 @@ struct MainView: View {
             }
             Tab("Offline", systemImage: "arrow.down.circle", value: AppModel.Section.offline) {
                 BrowserStack { OfflineView() }
+            }
+            Tab("Deleted Files", systemImage: "trash", value: AppModel.Section.trash) {
+                NavigationStack { TrashView() }
             }
         }
         .tabViewStyle(.sidebarAdaptable)

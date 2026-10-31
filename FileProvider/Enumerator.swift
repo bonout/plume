@@ -31,7 +31,7 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
                 let listing = try await repository.refresh(folder)
                 let items = listing.children
                     .filter { !FileProviderExtension.isExcluded($0.name) }
-                    .map { FileProviderItem($0, parent: owner.parentIdentifier(of: $0, in: repository)) }
+                    .map { owner.providerItem($0, in: repository) }
                 observer.value.didEnumerate(items)
                 observer.value.finishEnumerating(upTo: nil)
             } catch {
@@ -45,9 +45,11 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
         Task {
             do {
                 let changes = try await repository.changes(under: folder ?? .root)
-                let updated = changes.updated
+                var changedItems = changes.updated
+                if folder == nil { changedItems += pinChanges() }
+                let updated = changedItems
                     .filter { !FileProviderExtension.isExcluded($0.name) }
-                    .map { FileProviderItem($0, parent: owner.parentIdentifier(of: $0, in: repository)) }
+                    .map { owner.providerItem($0, in: repository) }
                 let removed = changes.removed
                     .filter { !$0.fileID.isEmpty }
                     .map { NSFileProviderItemIdentifier($0.fileID) }
@@ -58,6 +60,16 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
                 observer.value.finishEnumeratingWithError(FileProviderExtension.providerError(error))
             }
         }
+    }
+
+    /// Items kept offline (or no longer) in the app since the last report:
+    /// their content policy changed.
+    private func pinChanges() -> [RemoteItem] {
+        let key = "reportedPinnedPaths"
+        let current = AppGroup.pinnedPaths
+        let reported = Set((UserDefaults.standard.stringArray(forKey: key) ?? []).map(RemotePath.init))
+        UserDefaults.standard.set(current.map(\.rawValue), forKey: key)
+        return current.symmetricDifference(reported).compactMap { repository.store.item(at: $0) }
     }
 
     func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
