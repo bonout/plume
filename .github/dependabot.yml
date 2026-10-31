@@ -1,0 +1,13 @@
+# Update proposals for the GitHub Actions, once a month and grouped (they are
+# pinned by SHA: Dependabot bumps the SHA). The app has no third-party
+# dependencies. Security fixes come at any time, through Dependabot security
+# updates (repository settings).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
