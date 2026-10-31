@@ -1,0 +1,43 @@
+<!--{"title": "Client Nextcloud pour Mac : Plume pour macOS", "description": "Plume est une app Nextcloud native et légère pour Mac : vos fichiers dans le Finder, navigation instantanée, recherche à la frappe et dans Spotlight, envoi par glisser-déposer, hors-ligne. Open source.", "schema": "app", "preload": "/media/mac.png"}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Nextcloud sur Mac</div>
+    <h1>Votre Nextcloud, natif sur Mac.</h1>
+    <p class="lede">Une petite app SwiftUI rapide et un emplacement dans le Finder : parcourez, cherchez et enregistrez vos fichiers Nextcloud comme tout le reste sur votre Mac.</p>
+    <p class="small">Gratuit et open source (GPL-3.0 ou ultérieure) · macOS 15 ou ultérieur · fonctionne avec n'importe quel serveur Nextcloud</p>
+  </div>
+</header>
+
+<article class="prose">
+  <figure>
+    <img src="/media/mac.png" alt="Plume sur Mac : un dossier de photos Nextcloud avec leurs vignettes, tailles et dates" width="1200" height="919" fetchpriority="high">
+    <figcaption>Un dossier dans Plume sur Mac. La barre latérale (non montrée) regroupe Fichiers, Favoris et Hors ligne.</figcaption>
+  </figure>
+
+  <h2>Plume pour Mac, c'est quoi ?</h2>
+  <p><strong>Plume est un client Nextcloud gratuit et open source pour macOS.</strong> C'est une app SwiftUI native sans dépendance tierce : elle démarre vite et reste légère. Connectez-vous à n'importe quel serveur Nextcloud par le Login Flow dans votre navigateur (la double authentification fonctionne) ou avec un mot de passe d'application ; celui-ci reste dans le trousseau et est révoqué à la déconnexion.</p>
+
+  <h2>Votre Nextcloud dans le Finder</h2>
+  <p>Plume ajoute votre Nextcloud à la barre latérale du Finder. Un fichier se télécharge quand vous l'ouvrez, vous pouvez le garder téléchargé, et ce que vous modifiez dans n'importe quelle app est renvoyé au serveur.</p>
+
+  <h2>L'app</h2>
+  <ul>
+    <li><strong>Une barre latérale</strong> avec vos Fichiers, vos Favoris (synchronisés avec le serveur) et ce que vous gardez Hors ligne.</li>
+    <li><strong>Dossiers instantanés</strong> depuis une copie locale de l'arborescence, mise à jour depuis le serveur en arrière-plan, avec les vignettes du serveur.</li>
+    <li><strong>Recherche à la frappe</strong> dans tout le compte, sans tenir compte des majuscules ni des accents. Vos fichiers sont aussi dans Spotlight.</li>
+    <li><strong>Glisser-déposer</strong> des fichiers sur la fenêtre ou l'icône du Dock pour les envoyer ; la feuille de partage et « Ouvrir dans… » marchent aussi. Rien n'est jamais écrasé, et les gros fichiers partent par morceaux, avec reprise.</li>
+    <li><strong>Coup d'œil</strong> pour les PDF, images, vidéos, sons et documents Office, ou ouvrez un fichier dans son app par défaut, ou affichez-le dans le Finder. Les modifications sont renvoyées au serveur.</li>
+    <li><strong>Disponible hors ligne</strong> : gardez un fichier ou un dossier entier sur votre Mac.</li>
+  </ul>
+
+  <h2>Confidentiel par conception</h2>
+  <p>Plume ne se connecte qu'à votre serveur Nextcloud, par les interfaces standard WebDAV et OCS. Pas de statistiques, pas de compte chez nous. Lisez la <a href="/fr/confidentialite/">politique de confidentialité</a>.</p>
+
+  <h2>Les limites aujourd'hui</h2>
+  <p>Un seul compte à la fois, et les changements faits ailleurs arrivent dans le Finder quand Plume est ouvert (pas encore d'actualisation en arrière-plan). <!--source-->Pas encore de téléchargement : compilez Plume depuis les sources avec Xcode 16 ou ultérieur ; la version Mac demande une équipe de développement pour le trousseau et le groupe d'apps partagés.<!--/source--><!--release-->Téléchargez la version {{version}} sur GitHub, ou compilez Plume depuis les sources avec Xcode 16 ou ultérieur.<!--/release--></p>
+
+  <div class="cta">
+    <!--release--><a class="button" href="https://github.com/bonout/plume/releases/tag/v{{version}}">Télécharger Plume {{version}}</a><!--/release--><!--source--><a class="button" href="https://github.com/bonout/plume#build">Instructions de compilation</a><!--/source-->
+    <a class="button ghost" href="/fr/client-nextcloud-iphone/">L'app iPhone et iPad</a>
+  </div>
+</article>

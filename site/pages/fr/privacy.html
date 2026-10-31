@@ -1,0 +1,32 @@
+<!--{"title": "Politique de confidentialité de Plume", "description": "Plume ne collecte rien : ni compte, ni statistiques, ni pistage. L'app ne parle qu'à votre serveur Nextcloud et range son mot de passe d'application dans le trousseau."}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Confidentialité</div>
+    <h1>Politique de confidentialité.</h1>
+  </div>
+</header>
+
+<article class="prose">
+  <p>Dernière mise à jour : 31 octobre 2026.</p>
+
+  <p>Plume est un client pour un serveur Nextcloud que vous choisissez : le vôtre, ou celui d'une personne de confiance. Les développeurs de Plume n'exploitent aucun serveur, ne collectent aucune donnée et n'ont aucun accès à vos fichiers.</p>
+
+  <h2>Ce que Plume collecte</h2>
+  <p>Rien. Plume n'a pas de compte à lui, pas de statistiques d'usage, pas de publicité, pas de rapports de plantage envoyés, aucun pistage, et ne contient aucun code tiers.</p>
+
+  <h2>Où vont vos données</h2>
+  <ul>
+    <li><strong>Votre serveur Nextcloud</strong>, et lui seul : Plume y liste, télécharge et envoie vos fichiers, récupère leurs vignettes, lit ou modifie vos favoris et liens de partage, par les interfaces standard WebDAV et OCS de Nextcloud. Ce que le serveur conserve relève de la personne qui l'administre.</li>
+    <li><strong>Votre navigateur</strong>, quand vous vous connectez avec le Login Flow de Nextcloud : Plume y ouvre la page de connexion de votre serveur, et c'est auprès de lui que vous vous identifiez. Plume ne voit jamais le mot de passe de votre compte.</li>
+  </ul>
+
+  <h2>Sur votre appareil</h2>
+  <ul>
+    <li><strong>Le mot de passe d'application</strong> que Nextcloud remet à Plume est rangé dans le trousseau. À la déconnexion, Plume demande à votre serveur de le révoquer, puis l'efface de l'appareil.</li>
+    <li><strong>Une copie locale</strong> de la liste de vos fichiers (noms, tailles, dates), les vignettes en cache et les fichiers ouverts ou gardés hors ligne restent sur l'appareil : c'est ce qui rend la navigation instantanée et la recherche possible. La déconnexion les efface.</li>
+    <li><strong>Spotlight</strong> : les noms, types, dates et tailles de vos fichiers et dossiers, ainsi que leurs vignettes, sont ajoutés à l'index Spotlight de l'appareil pour les retrouver depuis la recherche du système. Cet index reste sur l'appareil et est vidé à la déconnexion.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>Une question : ouvrez un ticket sur <a href="https://github.com/bonout/plume/issues">https://github.com/bonout/plume/issues</a>. Le code source, qui montre chaque connexion de Plume, est sur <a href="https://github.com/bonout/plume">github.com/bonout/plume</a>.</p>
+</article>

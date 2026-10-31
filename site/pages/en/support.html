@@ -1,0 +1,37 @@
+<!--{"title": "Plume support and help", "description": "How to get help with Plume: GitHub issues, what to include in a bug report, and quick answers on signing in, Finder and the Files app."}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Support</div>
+    <h1>Help with Plume.</h1>
+  </div>
+</header>
+
+<article class="prose">
+  <h2>Get help</h2>
+  <ul>
+    <li><strong>Bugs, questions and ideas</strong>: open an issue on <a href="https://github.com/bonout/plume/issues">GitHub</a>.</li>
+    <li><strong>Security</strong>: if you find a vulnerability, please don't post the details in a public issue; open an issue asking for a private contact instead.</li>
+  </ul>
+  <p>Before writing, the <a href="/faq/">FAQ</a> and the <a href="https://github.com/bonout/plume#readme">README</a> may already have your answer.</p>
+
+  <h2>What to include in a bug report</h2>
+  <ul>
+    <li>The version of Plume (or the commit you built) and of iOS, iPadOS or macOS.</li>
+    <li>The version of your Nextcloud server, if you know it.</li>
+    <li>The steps that lead to the problem, and what you expected to happen.</li>
+    <li>Never your password, app password or server address in a public issue: use cloud.example.com instead.</li>
+  </ul>
+
+  <h2>Quick answers</h2>
+  <h3>Sign-in doesn't finish</h3>
+  <p>With the Login Flow, Plume waits until you have signed in and approved access in the browser page it opened. If your browser shows an error, check that the server address is the one you use on the web (for example cloud.example.com, or cloud.example.com/nextcloud if your server lives in a folder). You can also sign in with an app password, created in Nextcloud under Settings → Security.</p>
+
+  <h3>Where is Plume in Finder or the Files app?</h3>
+  <p>On Mac, Plume appears in Finder's sidebar, under Locations. On iPhone and iPad, open the Files app, tap Browse, and Plume is listed under Locations; if it isn't, tap ⋯ → Edit and turn it on.</p>
+
+  <h3>A change made on the web doesn't show up yet</h3>
+  <p>Changes made elsewhere reach Plume, Finder and the Files app while Plume is open; there is no background refresh yet. Open Plume and the folder updates.</p>
+
+  <h3>An upload got a different name</h3>
+  <p>Plume never overwrites a file on upload: when a name is taken, the new file is saved as “name 2.ext”.</p>
+</article>

@@ -1,0 +1,38 @@
+# Plume
+
+> Plume is a free, open source (GPL-3.0-or-later) Nextcloud client for iPhone, iPad and Mac. It is a native SwiftUI app (Swift 6, no third-party dependencies) that talks to any Nextcloud server with the standard WebDAV and OCS interfaces. <!--release-->Current version: {{version}}. <!--/release--><!--source-->No release yet: it is built from source with Xcode. <!--/source-->Website: https://plume.bonout.com. Source: https://github.com/bonout/plume.
+
+Key facts:
+
+- Platforms: iOS 18 or later (iPhone), iPadOS 18 or later (iPad), macOS 15 or later (Mac). Not on the App Store yet; build instructions in the README.
+- Server: any Nextcloud server (self-hosted or from a provider); nothing to install on the server.
+- Browsing: folders open instantly from a local mirror of the file tree, refreshed from the server in the background; thumbnails come from the server and are cached.
+- Search: the whole account as you type, ignoring case and accents, from a local index of every file and folder; results also in Spotlight on iPhone, iPad and Mac.
+- Finder and the Files app (File Provider extension): files download when opened, can be kept downloaded, and edits made in other apps are uploaded.
+- Saving: share sheet, "Save to Files", "Open in…", drag and drop (onto the window or, on Mac, the Dock icon). Uploads never overwrite a file (a taken name becomes "name 2.ext"); large files are uploaded in resumable chunks.
+- Available offline for files and whole folders. Quick Look for PDFs, images, video, audio and Office documents. Favorites synced with the server, public share links, rename, delete to the server's trash bin.
+- Interface: on iPhone a single screen (folders and files plus search, settings behind a gear button); on Mac a sidebar with Files, Favorites and Offline.
+- Sign-in: Nextcloud Login Flow v2 in the browser (two-factor authentication works) or an app password. The app password is stored in the Keychain and revoked on sign-out.
+- Privacy: no analytics, no account of its own, no third-party servers; Plume connects only to the user's Nextcloud server.
+- Current limits: one account; changes made elsewhere reach Finder and the Files app while Plume is open (no push and no background refresh yet).
+- Price: free. Publisher: Bonout. Not affiliated with Nextcloud GmbH.
+
+## Pages
+
+- [Home](https://plume.bonout.com/): overview, search, iPhone and iPad, Mac, privacy, build from source
+- [Nextcloud client for iPhone and iPad](https://plume.bonout.com/nextcloud-iphone/): Files app, Save from any app, offline, Spotlight
+- [Nextcloud client for Mac](https://plume.bonout.com/nextcloud-mac/): Finder, sidebar, drag and drop
+- [Plume vs the official Nextcloud apps](https://plume.bonout.com/nextcloud-alternative-client/): comparison, when to use which
+- [FAQ](https://plume.bonout.com/faq/)
+- [Privacy policy](https://plume.bonout.com/privacy/): what Plume collects (nothing) and where data goes
+- [Support](https://plume.bonout.com/support/): GitHub issues, bug reports, quick answers
+- [All pages as text](https://plume.bonout.com/llms-full.txt)
+
+## Docs
+
+- [README](https://github.com/bonout/plume/blob/main/README.md): features, build, tests, limits
+- [Issues](https://github.com/bonout/plume/issues)
+
+## Optional
+
+- [Version française](https://plume.bonout.com/fr/)

@@ -1,0 +1,53 @@
+<!--{"title": "Plume FAQ: Nextcloud app for iPhone, iPad and Mac", "description": "Answers about Plume: what it is, which Nextcloud servers it works with, sign-in, Finder and Files, offline files, privacy, limits and how to install it.", "schema": "faq"}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h1>Questions about Plume.</h1>
+  </div>
+</header>
+
+<article class="prose">
+<section class="faq">
+  <h3>What is Plume?</h3>
+  <p>Plume is a free, open source Nextcloud client for iPhone, iPad and Mac. It is a native SwiftUI app with no third-party dependencies: it browses your files instantly from a local mirror, searches your whole account as you type, and puts your Nextcloud in Finder and the Files app.</p>
+
+  <h3>Which Nextcloud servers does it work with?</h3>
+  <p>Any Nextcloud server you can sign in to, self-hosted or from a provider. Plume only uses Nextcloud's standard protocols (WebDAV for files, OCS for the rest), so nothing needs to be installed on the server.</p>
+
+  <h3>How do I sign in?</h3>
+  <p>Enter your server's address (for example cloud.example.com). Plume opens Nextcloud's Login Flow in your browser, where you sign in as usual, two-factor authentication included, and approve the app. You can also sign in with an app password created in your Nextcloud security settings.</p>
+
+  <h3>Where is my password stored?</h3>
+  <p>Plume never sees your account password with the Login Flow: Nextcloud gives it an app password, which is stored in the Keychain. When you sign out, Plume revokes that app password on your server.</p>
+
+  <h3>How does search work?</h3>
+  <p>Plume keeps a local index of every file and folder in your account, so results appear as you type, ignoring case and accents. Your files also appear in Spotlight on iPhone, iPad and Mac.</p>
+
+  <h3>Can I use my Nextcloud files in Finder and the Files app?</h3>
+  <p>Yes. Plume adds your Nextcloud next to iCloud Drive in Finder and in the Files app. Files download when you open them, you can keep them downloaded, and edits made in other apps are uploaded back to your server.</p>
+
+  <h3>Can I save files to Nextcloud from other apps?</h3>
+  <p>Yes: from the share sheet, “Save to Files”, “Open in…”, or by dragging files onto the window or the Dock icon on Mac. An upload never overwrites a file: if the name is taken, it becomes “name 2.ext”. Large files are uploaded in chunks, so an interrupted upload resumes.</p>
+
+  <h3>Does Plume work offline?</h3>
+  <p>Mark a file or a whole folder as available offline and it stays on the device, updated when it changes on the server. Folders you have opened are also listed from the local mirror without a connection.</p>
+
+  <h3>Does Plume replace the official Nextcloud apps?</h3>
+  <p>It doesn't need to: Plume is another client for the same files, focused on browsing, searching and saving files on Apple devices. The official apps cover more, such as several accounts and automatic photo upload. Both can be installed side by side. See <a href="/nextcloud-alternative-client/">Plume vs the official apps</a>.</p>
+
+  <h3>What are the current limits?</h3>
+  <p>One account at a time. Changes made elsewhere reach Finder and the Files app when Plume is open: there is no push from the server and no background refresh yet.</p>
+
+  <h3>How do I install Plume?</h3>
+  <p>Plume isn't on the App Store yet. Build it from the source code with Xcode 16 or later and XcodeGen, following the README on GitHub. The iPhone simulator build needs no Apple account; the Mac, iPhone and iPad builds need a development team.</p>
+
+  <h3>Is Plume free?</h3>
+  <p>Yes. Plume is free and open source under the GPL-3.0-or-later licence.</p>
+
+  <h3>Does Plume collect any data?</h3>
+  <p>No. Plume has no analytics and no account of its own, and connects to no server other than your Nextcloud. See the <a href="/privacy/">privacy policy</a>.</p>
+
+  <h3>Who makes Plume?</h3>
+  <p>Plume is an independent open source project published by Bonout. It is not affiliated with Nextcloud GmbH. Nextcloud is a trademark of Nextcloud GmbH.</p>
+</section>
+</article>

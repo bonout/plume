@@ -3,8 +3,20 @@
 A light, fast Nextcloud client for iPhone, iPad and Mac. Native SwiftUI, no
 dependencies, only standard WebDAV and OCS on the wire.
 
+**Website: [plume.bonout.com](https://plume.bonout.com)**
+
+| iPhone | Search | Mac |
+| --- | --- | --- |
+| <img src="docs/screenshots/iphone-files.png" width="220"> | <img src="docs/screenshots/iphone-search.png" width="220"> | <img src="docs/screenshots/mac.png" width="420"> |
+
 - **Instant browsing**: folders open from a local mirror right away and refresh
   from the server in the background. Thumbnails come from the server and are cached.
+  On iPhone and iPad, one screen: your folders and files, and the search.
+- **Search as you type** across the whole account, ignoring case and accents
+  ("resume" finds "Résumé"). The whole tree is mirrored locally; after the
+  first pass, keeping it current costs one request when nothing changed.
+- **Spotlight**: every file and folder can be found from Spotlight on iPhone,
+  iPad and Mac. A result opens the folder, or the file in Quick Look.
 - **Finder and Files**: a File Provider extension puts your Nextcloud next to
   iCloud Drive. Files are downloaded when opened, you can keep them downloaded,
   and edits made in any app are uploaded.
@@ -17,8 +29,8 @@ dependencies, only standard WebDAV and OCS on the wire.
 - **Quick Look** for PDFs, images, video, audio and Office documents. On the
   Mac you can also open a file in its default app or reveal it in Finder, and
   changes sync back.
-- Search (local results instantly, then the server's), favorites synced with
-  the server, public links, rename, delete (to the server's trash bin).
+- Favorites synced with the server (Mac sidebar), public links, rename,
+  delete (to the server's trash bin).
 - Sign-in through Nextcloud Login Flow v2 (your browser, with two-factor
   authentication), or with an app password. The app password is stored in the
   Keychain and revoked on sign-out.
@@ -33,6 +45,7 @@ dependencies, only standard WebDAV and OCS on the wire.
 | `FileProvider` | `NSFileProviderReplicatedExtension` (Finder / Files) |
 | `ShareExtension` | "Save to Plume" from the share sheet |
 | `Config` | Build settings and entitlements; your personal settings go in `Config/Local.xcconfig` (ignored by git) |
+| `site` | The website, built by `site/build.py` and published by GitHub Pages (`.github/workflows/pages.yml`) |
 
 ## Build
 
@@ -47,7 +60,7 @@ open Plume.xcodeproj
 - **iPhone simulator**: works without an Apple account (ad hoc signing).
 - **Mac**: the app and its extensions share the Keychain and an app group,
   which needs a development provisioning profile. Sign in under
-  Xcode → Settings → Accounts.
+  Xcode → Settings → Accounts. Spotlight also needs a signed build.
 - **iPhone device**: also create the app group `group.<bundle prefix>` on
   developer.apple.com (Identifiers → App Groups) before the first build.
 

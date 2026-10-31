@@ -1,0 +1,166 @@
+<!--{"title": "Plume: a light, fast Nextcloud client for iPhone, iPad and Mac", "description": "Plume is a free, open source Nextcloud app for iPhone, iPad and Mac: instant browsing, search as you type, Finder and Files integration, offline files. Native SwiftUI.", "schema": "app", "preload": "/media/mac.png"}-->
+<header class="hero" id="top">
+  <div class="wrap">
+    <img class="hero-icon" src="/img/icon-180.png" alt="" width="96" height="96">
+    <h1>Your Nextcloud, native and instant.</h1>
+    <p class="lede">Plume is a light, fast Nextcloud client for iPhone, iPad and Mac. Folders open at once, search finds any file as you type, and your files show up in Finder and the Files app.</p>
+    <div class="cta">
+      <!--release--><a class="button" href="https://github.com/bonout/plume/releases/tag/v{{version}}">Download Plume {{version}}</a><!--/release-->
+      <!--source--><a class="button" href="#download">Get Plume</a><!--/source-->
+      <a class="button ghost" href="https://github.com/bonout/plume">View on GitHub</a>
+    </div>
+    <p class="small"><!--release-->Version {{version}} · <!--/release-->Free and open source · iOS 18, iPadOS 18, macOS 15 or later · works with any Nextcloud server</p>
+    <div class="window reveal">
+      <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+      <img src="/media/mac.png" alt="Plume on Mac: a Nextcloud folder of photos with their thumbnails, sizes and dates" width="1200" height="919" fetchpriority="high">
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Everyday</div>
+      <h2>Your files, without the wait.</h2>
+      <p class="sub">A native SwiftUI app with no third-party dependencies. It speaks the standard Nextcloud protocols (WebDAV and OCS), so it works with the server you already have.</p>
+    </div>
+    <div class="grid">
+      <div class="card wide reveal">
+        <div class="icon">⚡</div>
+        <h3>Instant browsing</h3>
+        <p>Plume keeps a local mirror of your folder tree: a folder opens right away, then refreshes from the server in the background. Thumbnails come from your server and are cached.</p>
+      </div>
+      <div class="card reveal">
+        <div class="icon">⌕</div>
+        <h3>Search everything</h3>
+        <p>Every file and folder of your account, as you type, ignoring case and accents. Also in Spotlight.</p>
+      </div>
+      <div class="card reveal">
+        <div class="icon">▤</div>
+        <h3>Finder and Files</h3>
+        <p>Your Nextcloud next to iCloud Drive. Files download when you open them; edits from other apps are uploaded.</p>
+      </div>
+      <div class="card reveal">
+        <div class="icon">↑</div>
+        <h3>Save from any app</h3>
+        <p>Share sheet, “Save to Files”, “Open in…”, drag and drop. Uploads never overwrite a file.</p>
+      </div>
+      <div class="card reveal">
+        <div class="icon">↓</div>
+        <h3>Available offline</h3>
+        <p>Keep a file or a whole folder on the device. It stays up to date when it changes on the server.</p>
+      </div>
+      <div class="card full reveal">
+        <div class="icon">◉</div>
+        <h3>Quick Look, favorites, links</h3>
+        <p>Preview PDFs, images, video, audio and Office documents. Mark favorites (synced with your server), share a public link, rename, or delete to the server's trash bin.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="search">
+  <div class="wrap split">
+    <div class="reveal">
+      <div class="eyebrow">Search</div>
+      <h2>Find any file, as you type.</h2>
+      <p class="sub">Plume keeps a local index of every file and folder in your account, so results appear with each letter, whichever folder they are in. Case and accents don't matter: “resume” finds “Résumé.pdf”.</p>
+      <p class="sub">Your files also show up in Spotlight on iPhone, iPad and Mac: a result opens Plume right on the file.</p>
+    </div>
+    <div class="search-demo reveal" id="search-demo" aria-hidden="true">
+      <div class="field"><span class="query"></span></div>
+      <ul></ul>
+      <div class="spotlight">Local index · every folder</div>
+    </div>
+  </div>
+</section>
+
+<section id="iphone">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <div class="eyebrow">iPhone and iPad</div>
+      <h2>One screen. All your files.</h2>
+      <p class="sub" style="margin:0 auto">On iPhone, Plume is your folders and files plus a search field, with the settings behind a gear button. Nothing else to learn.</p>
+    </div>
+    <div class="phones reveal">
+      <div class="phone"><img src="/media/iphone-files.png" alt="Plume on iPhone: the folders and files of a Nextcloud account" width="590" height="1282" loading="lazy"></div>
+      <div class="phone"><img src="/media/iphone-search.png" alt="Plume on iPhone: search results for “resume”, accents ignored" width="590" height="1282" loading="lazy"></div>
+      <div class="phone"><img src="/media/iphone-preview.png" alt="Plume on iPhone: a PDF opened with Quick Look" width="590" height="1282" loading="lazy"></div>
+    </div>
+    <p class="sub" style="margin:36px auto 0; text-align:center"><a href="/nextcloud-iphone/">Plume for iPhone and iPad</a> · <a href="/nextcloud-mac/">Plume for Mac</a></p>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>Sign in once. Then it's just files.</h2>
+    </div>
+    <ol class="steps reveal">
+      <li><strong>Sign in</strong>Enter your server's address and approve Plume in your browser with Nextcloud's Login Flow (two-factor authentication works), or use an app password.</li>
+      <li><strong>Browse and search</strong>Plume lists your folders and indexes their files, then keeps that mirror fresh from the server.</li>
+      <li><strong>Use it everywhere</strong>Open files in Finder or the Files app, save into Nextcloud from any app, keep what you need offline.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Private by design</div>
+      <h2>Only you and your server.</h2>
+      <p class="sub">Plume has no account of its own, no analytics and no tracking. It talks to your Nextcloud server and nothing else.</p>
+    </div>
+    <ul class="checks reveal">
+      <li><strong>No third-party servers</strong>: every request goes to the Nextcloud server you sign in to.</li>
+      <li><strong>Keychain</strong>: the app password is stored in the Keychain.</li>
+      <li><strong>Revoked on sign-out</strong>: signing out also revokes the app password on your server.</li>
+      <li><strong>Standard protocols</strong>: WebDAV and OCS, as Nextcloud documents them. No server add-on needed.</li>
+      <li><strong>No dependencies</strong>: only Apple's frameworks, no third-party code in the app.</li>
+      <li><strong>Open source</strong>: GPL-3.0-or-later, every line on GitHub.</li>
+    </ul>
+    <p class="sub" style="margin-top:36px"><a href="/privacy/">Privacy policy</a></p>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap split">
+    <div class="reveal">
+      <div class="eyebrow">Open source</div>
+      <h2>Free, and yours to read.</h2>
+      <!--release--><p class="sub">Plume is free software under the GPL-3.0-or-later licence. Download version {{version}} from GitHub, or build it yourself.</p>
+      <div class="cta" style="justify-content:flex-start; margin-top:28px">
+        <a class="button" href="https://github.com/bonout/plume/releases/tag/v{{version}}">Download Plume {{version}}</a>
+        <a class="button ghost" href="https://github.com/bonout/plume#build">Build from source</a>
+      </div><!--/release-->
+      <!--source--><p class="sub">Plume is free software under the GPL-3.0-or-later licence. It isn't on the App Store yet: build it with Xcode 16 or later and XcodeGen, for the iPhone simulator without an Apple account, or for your Mac, iPhone and iPad with your own.</p>
+      <div class="cta" style="justify-content:flex-start; margin-top:28px">
+        <a class="button" href="https://github.com/bonout/plume#build">Build instructions</a>
+        <a class="button ghost" href="https://github.com/bonout/plume">View on GitHub</a>
+      </div><!--/source-->
+    </div>
+    <pre class="reveal"><span class="p">$</span> brew install xcodegen
+<span class="p">$</span> git clone https://github.com/bonout/plume
+<span class="p">$</span> cd plume
+<span class="c"># your Apple team and bundle prefix</span>
+<span class="p">$</span> scripts/configure.sh &lt;team id&gt; &lt;bundle prefix&gt;
+<span class="p">$</span> scripts/generate.sh
+<span class="p">$</span> open Plume.xcodeproj</pre>
+  </div>
+</section>
+
+<script type="application/json" id="search-demo-data">{
+  "queries": ["resume", "lisbon", "invoice", "ete"],
+  "files": [
+    {"kind": "📄", "name": "Résumé.pdf", "where": "Documents"},
+    {"kind": "📁", "name": "Lisbon 2026", "where": "Photos"},
+    {"kind": "🖼", "name": "Lisbon tram.jpg", "where": "Photos › Lisbon 2026"},
+    {"kind": "📄", "name": "Invoice 2026-03.pdf", "where": "Documents › Invoices"},
+    {"kind": "📄", "name": "Invoice 2026-04.pdf", "where": "Documents › Invoices"},
+    {"kind": "📝", "name": "Resume notes.md", "where": "Projects"},
+    {"kind": "🎞", "name": "Été à Porto.mov", "where": "Photos"},
+    {"kind": "📊", "name": "Budget été.xlsx", "where": "Documents"},
+    {"kind": "📄", "name": "Tax return 2025.pdf", "where": "Taxes"}
+  ]
+}</script>

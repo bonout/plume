@@ -1,0 +1,43 @@
+<!--{"title": "Nextcloud client for Mac: Plume for macOS", "description": "Plume is a light, native Nextcloud app for Mac: your files in Finder, instant browsing, search as you type and in Spotlight, drag and drop uploads, offline files. Open source.", "schema": "app", "preload": "/media/mac.png"}-->
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Nextcloud for Mac</div>
+    <h1>Your Nextcloud, native on the Mac.</h1>
+    <p class="lede">A small, fast SwiftUI app and a Finder location: browse, search and save your Nextcloud files the way you handle everything else on your Mac.</p>
+    <p class="small">Free and open source (GPL-3.0-or-later) · macOS 15 or later · works with any Nextcloud server</p>
+  </div>
+</header>
+
+<article class="prose">
+  <figure>
+    <img src="/media/mac.png" alt="Plume on Mac: a Nextcloud folder of photos with their thumbnails, sizes and dates" width="1200" height="919" fetchpriority="high">
+    <figcaption>A folder in Plume on Mac. The sidebar (not shown) holds Files, Favorites and Offline.</figcaption>
+  </figure>
+
+  <h2>What is Plume for Mac?</h2>
+  <p><strong>Plume is a free, open source Nextcloud client for macOS.</strong> It is a native SwiftUI app with no third-party dependencies, so it starts fast and stays light. Sign in to any Nextcloud server with the Login Flow in your browser (two-factor authentication works) or an app password; the app password stays in the Keychain and is revoked when you sign out.</p>
+
+  <h2>Your Nextcloud in Finder</h2>
+  <p>Plume adds your Nextcloud to Finder's sidebar. Files download when you open them, you can keep them downloaded, and edits made in any app are uploaded back to your server.</p>
+
+  <h2>The app</h2>
+  <ul>
+    <li><strong>A sidebar</strong> with your Files, your Favorites (synced with the server) and what you keep Offline.</li>
+    <li><strong>Instant folders</strong> from a local mirror of your folder tree, refreshed from the server in the background, with server thumbnails.</li>
+    <li><strong>Search as you type</strong> across your whole account, ignoring case and accents. Your files are also in Spotlight.</li>
+    <li><strong>Drag and drop</strong> files onto the window or the Dock icon to upload them; the share sheet and “Open in…” work too. Nothing is ever overwritten, and large files go up in resumable chunks.</li>
+    <li><strong>Quick Look</strong> for PDFs, images, video, audio and Office documents, or open a file in its default app, or reveal it in Finder. Changes sync back.</li>
+    <li><strong>Available offline</strong>: keep a file or a whole folder on your Mac.</li>
+  </ul>
+
+  <h2>Private by design</h2>
+  <p>Plume connects only to your Nextcloud server, with Nextcloud's standard WebDAV and OCS interfaces. No analytics, no account of ours. Read the <a href="/privacy/">privacy policy</a>.</p>
+
+  <h2>Limits today</h2>
+  <p>One account at a time, and changes made elsewhere reach Finder while Plume is open (no background refresh yet). <!--source-->There is no download yet: build Plume from source with Xcode 16 or later; the Mac build needs a development team for the shared Keychain and app group.<!--/source--><!--release-->Download version {{version}} from GitHub, or build Plume from source with Xcode 16 or later.<!--/release--></p>
+
+  <div class="cta">
+    <!--release--><a class="button" href="https://github.com/bonout/plume/releases/tag/v{{version}}">Download Plume {{version}}</a><!--/release--><!--source--><a class="button" href="https://github.com/bonout/plume#build">Build instructions</a><!--/source-->
+    <a class="button ghost" href="/nextcloud-iphone/">The iPhone and iPad app</a>
+  </div>
+</article>
