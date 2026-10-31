@@ -50,11 +50,9 @@ struct ServerTests {
 
     func temporaryFile(_ name: String, bytes: Int) throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString)-\(name)")
-        var data = Data(count: bytes)
-        data.withUnsafeMutableBytes { buffer in
-            for index in stride(from: 0, to: bytes, by: 4096) { buffer[index] = UInt8(index / 4096 % 251) }
-        }
-        try data.write(to: url)
+        var content = [UInt8](repeating: 0, count: bytes)
+        for index in stride(from: 0, to: bytes, by: 4096) { content[index] = UInt8(index / 4096 % 251) }
+        try Data(content).write(to: url)
         return url
     }
 
