@@ -7,7 +7,7 @@ dependencies, only standard WebDAV and OCS on the wire.
 
 | iPhone | Search | Mac |
 | --- | --- | --- |
-| <img src="docs/screenshots/iphone-files.png" width="220"> | <img src="docs/screenshots/iphone-search.png" width="220"> | <img src="docs/screenshots/mac.png" width="420"> |
+| <img src="docs/screenshots/en/iphone-browse.jpg" width="220"> | <img src="docs/screenshots/en/iphone-search.jpg" width="220"> | <img src="docs/screenshots/en/mac-browse.jpg" width="420"> |
 
 - **Instant browsing**: folders open from a local mirror right away and refresh
   from the server in the background. Thumbnails come from the server and are cached.
