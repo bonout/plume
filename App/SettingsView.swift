@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var cacheSize: Int64 = 0
     @State private var indexed = 0
     @State private var confirmingSignOut = false
+    @State private var signingOut = false
 
     var body: some View {
         Form {
@@ -44,7 +45,27 @@ struct SettingsView: View {
                 Text("Recently opened files are kept to reopen them instantly, up to 2 GB.")
             }
             Section {
-                Button("Sign Out", role: .destructive) { confirmingSignOut = true }
+                Button(role: .destructive) {
+                    confirmingSignOut = true
+                } label: {
+                    if signingOut {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text("Signing Out…")
+                        }
+                    } else {
+                        Text("Sign Out")
+                    }
+                }
+                .disabled(signingOut)
+                .confirmationDialog("Sign out?", isPresented: $confirmingSignOut) {
+                    Button("Sign Out", role: .destructive) {
+                        signingOut = true
+                        Task { await model.signOut() }
+                    }
+                } message: {
+                    Text("Files kept on this device are removed. Nothing is deleted from the server.")
+                }
             }
         }
         .formStyle(.grouped)
@@ -52,11 +73,6 @@ struct SettingsView: View {
         .task {
             measure()
             info = try? await model.repository?.client.userInfo()
-        }
-        .confirmationDialog("Sign out?", isPresented: $confirmingSignOut) {
-            Button("Sign Out", role: .destructive) { Task { await model.signOut() } }
-        } message: {
-            Text("Files kept on this device are removed. Nothing is deleted from the server.")
         }
     }
 

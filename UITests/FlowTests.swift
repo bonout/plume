@@ -145,7 +145,9 @@ final class FlowTests: XCTestCase {
         let signOut = app.buttons["Sign Out"]
         XCTAssertTrue(signOut.waitForExistence(timeout: 10))
         signOut.tap()
-        app.buttons["Sign Out"].firstMatch.tap()
+        let inPopover = app.popovers.buttons["Sign Out"].firstMatch
+        let confirm = inPopover.waitForExistence(timeout: 5) ? inPopover : app.sheets.buttons["Sign Out"].firstMatch
+        confirm.tap()
         XCTAssertTrue(app.buttons["Sign In with Browser"].waitForExistence(timeout: 20))
     }
 }
