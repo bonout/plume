@@ -18,7 +18,10 @@ public struct RemotePath: Hashable, Sendable, Codable, Comparable, CustomStringC
 
     public var isRoot: Bool { rawValue.isEmpty }
     public var components: [String] { rawValue.split(separator: "/").map(String.init) }
-    public var name: String { components.last ?? "" }
+    public var name: String {
+        guard let slash = rawValue.lastIndex(of: "/") else { return rawValue }
+        return String(rawValue[rawValue.index(after: slash)...])
+    }
 
     /// The containing folder; `nil` for the root.
     public var parent: RemotePath? {
