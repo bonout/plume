@@ -48,6 +48,7 @@ someone outside the code).
 |---|---|---|---|---|
 | 19 | A 50,000-item folder is reported to Finder / Files in one batch, all in memory in the extension | `Enumerator.enumerateItems` | Reported in pages of 500 from the local database; not yet measured with 50,000 items | fixed, to measure |
 | 20 | Large uploads from the share extension | `ShareModel`, chunked upload | Files are copied to the group container and sent in 16 MB chunks, so memory shouldn't grow with file size; not yet measured with a 2 GB file | to measure |
+| 35 | Opening a 10,000-file folder: leaks and CPU | `RemotePath.name`, `Repository.refresh` | Leaks: none after opening the folder three times and searching (26 MB heap). Time Profiler: sorting split every path on each comparison; `name` now reads the last component directly, sorting went from 1.8 s to 0.67 s over three opens | fixed |
 | 21 | Signing and app groups | `project.yml`, entitlements | App and both extensions share the app group, signed for distribution by TestFlight builds | ok |
 
 ## Networking (ATS)
