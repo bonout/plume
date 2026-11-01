@@ -369,7 +369,8 @@ final class AppModel {
     }
 
     func isPinned(_ item: RemoteItem) -> Bool {
-        repository?.store.pinnedPaths().contains(item.path) ?? false
+        _ = revision
+        return repository?.store.pinnedPaths().contains(item.path) ?? false
     }
 
     func isAvailableOffline(_ item: RemoteItem) -> Bool {
