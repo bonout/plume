@@ -216,6 +216,6 @@ struct ItemRow: View {
 
     private var location: String {
         let parent = item.path.parent ?? .root
-        return parent.isRoot ? "Files" : parent.rawValue
+        return parent.isRoot ? String(localized: "Files") : parent.rawValue
     }
 }

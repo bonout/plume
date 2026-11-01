@@ -146,19 +146,19 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
 
     public var errorDescription: String? {
         switch self {
-        case .notSignedIn: "Not signed in."
-        case .unauthorized: "The server refused the credentials. Sign in again."
-        case .notFound: "This item no longer exists on the server."
-        case .alreadyExists: "An item with this name already exists."
-        case .conflict: "The destination folder doesn't exist."
-        case .insufficientStorage: "Not enough storage left on the server."
-        case .offline: "The server can't be reached. Check the address and your connection."
-        case .forbidden: "You don't have permission to do this on the server."
-        case .maintenance: "The server is in maintenance mode. Try again in a few minutes."
-        case .untrustedCertificate: "The server's security certificate isn't trusted. Plume only connects to servers with a certificate from a recognized authority, such as Let's Encrypt."
-        case .notNextcloud: "No Nextcloud server answered at this address. Enter the address you use to open Nextcloud in a browser, for example cloud.example.com."
-        case .http(let status): "The server answered with an error (HTTP \(status))."
-        case .invalidResponse(let detail): "Unexpected server response: \(detail)"
+        case .notSignedIn: String(localized: "Not signed in.")
+        case .unauthorized: String(localized: "The server refused the credentials. Sign in again.")
+        case .notFound: String(localized: "This item no longer exists on the server.")
+        case .alreadyExists: String(localized: "An item with this name already exists.")
+        case .conflict: String(localized: "The destination folder doesn't exist.")
+        case .insufficientStorage: String(localized: "Not enough storage left on the server.")
+        case .offline: String(localized: "The server can't be reached. Check the address and your connection.")
+        case .forbidden: String(localized: "You don't have permission to do this on the server.")
+        case .maintenance: String(localized: "The server is in maintenance mode. Try again in a few minutes.")
+        case .untrustedCertificate: String(localized: "The server's security certificate isn't trusted. Plume only connects to servers with a certificate from a recognized authority, such as Let's Encrypt.")
+        case .notNextcloud: String(localized: "No Nextcloud server answered at this address. Enter the address you use to open Nextcloud in a browser, for example cloud.example.com.")
+        case .http(let status): String(localized: "The server answered with an error (HTTP \(status)).")
+        case .invalidResponse(let detail): String(localized: "Unexpected server response: \(detail)")
         case .refused(let message): message
         }
     }

@@ -34,7 +34,7 @@ struct FolderView: View {
                     }
             }
         }
-        .navigationTitle(path.isRoot ? "Files" : path.name)
+        .navigationTitle(path.isRoot ? String(localized: "Files") : path.name)
         .searchable(text: $model.searchText, prompt: "Search all files")
         .refreshable { await refresh() }
         .task(id: model.revision) { await refresh() }
@@ -91,7 +91,7 @@ struct FolderView: View {
             items = try await repository.refresh(path).children
             offlineError = nil
         } catch PlumeError.offline {
-            offlineError = "Offline: showing the last known contents."
+            offlineError = String(localized: "Offline: showing the last known contents.")
         } catch {
             model.report(error)
         }

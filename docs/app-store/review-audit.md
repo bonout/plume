@@ -72,4 +72,4 @@ someone outside the code).
 | 27 | 5.2 trademark | Name "Plume: Files for Nextcloud" (factual "for"), own icon, no Nextcloud logo in screenshots; the description says "Not affiliated with Nextcloud GmbH" | ok |
 | 28 | VoiceOver: row icons read as symbol names, star unlabeled, rows read in pieces | `ItemRow` | Icons hidden, favorite labeled, each row read as one element | fixed |
 | 29 | Dynamic Type, dark mode, iPad orientations and multitasking, Mac window resizing | System fonts and colors, all orientations, resizable window with a minimum size | ok |
-| 30 | App UI is English only while the listing is also in French | — | Acceptable; French localization of the app is a later step | open |
+| 30 | App UI is English only while the listing is also in French | `Localizable.xcstrings` (app, share and Files extensions) | The app, the extensions and the error messages are translated into French (167 strings) | fixed |

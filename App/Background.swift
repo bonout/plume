@@ -92,7 +92,7 @@ final class Background {
             uploadsSubmitted = true
             let request = BGContinuedProcessingTaskRequest(
                 identifier: identifier,
-                title: "Uploading to Plume",
+                title: String(localized: "Uploading to Plume"),
                 subtitle: count == 1 ? "1 file" : "\(count) files")
             request.strategy = .queue
             do {

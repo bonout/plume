@@ -135,7 +135,7 @@ struct SharingView: View {
     }
 
     private func summary(_ link: Share) -> String {
-        var parts = [link.canEdit ? (item.isDirectory ? "Can upload and edit" : "Can edit") : "View only"]
+        var parts = [link.canEdit ? (item.isDirectory ? String(localized: "Can upload and edit") : String(localized: "Can edit")) : String(localized: "View only")]
         if link.hasPassword { parts.append("Password") }
         if let expiration = link.expiration {
             parts.append("Expires " + expiration.formatted(date: .abbreviated, time: .omitted))

@@ -52,7 +52,7 @@ final class ShareModel {
                 if let url = try await Self.loadFile(from: provider, into: staging) { loaded.append(url) }
             }
             files = loaded
-            phase = loaded.isEmpty ? .failed("Nothing to save: only files, photos and videos can be saved.") : .picking
+            phase = loaded.isEmpty ? .failed(String(localized: "Nothing to save: only files, photos and videos can be saved.")) : .picking
         } catch {
             phase = .failed(error.localizedDescription)
         }
@@ -80,7 +80,7 @@ final class ShareModel {
                 try? await Task.sleep(for: .milliseconds(600))
                 finish()
             } else {
-                phase = .failed("\(failures) of \(total) files couldn't be sent yet. Plume will send them the next time it opens.")
+                phase = .failed(String(localized: "\(failures) of \(total) files couldn't be sent yet. Plume will send them the next time it opens."))
             }
         }
     }

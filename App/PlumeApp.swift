@@ -75,8 +75,8 @@ struct RootView: View {
             if let repository = model.repository {
                 FolderPicker(repository: repository,
                              title: model.pendingImports.count == 1
-                                ? "Save “\(model.pendingImports[0].lastPathComponent)”"
-                                : "Save \(model.pendingImports.count) Files",
+                                ? String(localized: "Save “\(model.pendingImports[0].lastPathComponent)”")
+                                : String(localized: "Save \(model.pendingImports.count) Files"),
                              onPick: { folder in
                                  model.upload(model.pendingImports, into: folder)
                                  model.pendingImports = []
