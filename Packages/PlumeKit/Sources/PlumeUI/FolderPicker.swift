@@ -27,22 +27,25 @@ public struct FolderPicker: View {
 
     public var body: some View {
         NavigationStack(path: $path) {
-            FolderPickerList(repository: repository, folder: .root)
+            destination(.root)
                 .navigationDestination(for: RemotePath.self) { folder in
-                    FolderPickerList(repository: repository, folder: folder)
-                        .safeAreaInset(edge: .top) { header }
-                }
-                .safeAreaInset(edge: .top) { header }
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel", action: onCancel)
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(actionTitle) { onPick(path.last ?? .root) }
-                            .keyboardShortcut(.defaultAction)
-                    }
+                    destination(folder)
                 }
         }
+    }
+
+    private func destination(_ folder: RemotePath) -> some View {
+        FolderPickerList(repository: repository, folder: folder)
+            .safeAreaInset(edge: .top) { header }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(actionTitle) { onPick(path.last ?? .root) }
+                        .keyboardShortcut(.defaultAction)
+                }
+            }
     }
 
     private var header: some View {
