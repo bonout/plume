@@ -1,7 +1,7 @@
 # Plume
 
-A light, fast Nextcloud client for iPhone, iPad and Mac. Native SwiftUI, no
-dependencies, only standard WebDAV and OCS on the wire.
+A light, fast client for Nextcloud and any WebDAV server, on iPhone, iPad and
+Mac. Native SwiftUI, no dependencies, only standard WebDAV and OCS on the wire.
 
 **Website: [plume.bonout.com](https://plume.bonout.com)**
 
@@ -88,7 +88,7 @@ open Plume.xcodeproj
 
 ```sh
 cd Packages/PlumeKit && swift test   # unit tests
-scripts/test-server.sh               # + against a throwaway Nextcloud in Docker
+scripts/test-server.sh               # + against a throwaway Nextcloud and a WebDAV server (rclone) in Docker
 ```
 
 Debug builds can sign in from launch arguments, for testing against that
@@ -100,6 +100,10 @@ server: `-PlumeTestServer http://127.0.0.1:8099 -PlumeTestUser admin -PlumeTestP
   Files app and Spotlight only when iOS runs the background refresh (it
   decides when, from how the app is used) or when Plume is opened.
 - Only one account.
+- On a plain WebDAV server (not Nextcloud): sign-in with a user name and
+  password, no thumbnails from the server, favorites, sharing, versions or
+  trash; uploads go in one request; changes are found by listing every known
+  folder, since such servers don't propagate folder etags.
 
 ## License
 
