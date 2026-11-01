@@ -20,6 +20,14 @@ enum FileProviderControl {
     }
 
     /// Removes the domain and the files the system downloaded for it.
+    #if DEBUG
+    static func removeAllAndWait() {
+        let done = DispatchSemaphore(value: 0)
+        NSFileProviderManager.removeAllDomains { _ in done.signal() }
+        _ = done.wait(timeout: .now() + 10)
+    }
+    #endif
+
     static func removeAll() async {
         try? await NSFileProviderManager.removeAllDomains()
     }

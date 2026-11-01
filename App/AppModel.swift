@@ -72,6 +72,7 @@ final class AppModel {
         if DebugLaunch.resetAccount {
             AccountStore.remove()
             MetadataStore.removeAllDatabases()
+            FileProviderControl.removeAllAndWait()
             AppGroup.defaults.removeObject(forKey: "indexComplete")
             indexComplete = false
             AppGroup.defaults.removeObject(forKey: "lastServer")
