@@ -1,0 +1,26 @@
+Plume is a client for Nextcloud, the open-source file server people host themselves or rent from a provider. Plume has no account or server of its own: it connects to the user's Nextcloud.
+
+DEMO SERVER
+Server address: {{SERVER}}
+Login and password: in the demo account fields of this submission.
+
+HOW TO SIGN IN (about 30 seconds)
+1. Launch Plume and type the server address above.
+2. Tap "Use an app password instead", enter the demo login and password, and tap Sign In.
+(The default "Sign In with Browser" also works: it opens the server's login page in Safari; log in, tap "Grant access", then return to Plume, which finishes signing in by itself.)
+
+WHAT TO TRY
+- Browse folders, open a PDF or photo (Quick Look), search "resume" as you type.
+- Long-press "Travel > Iceland 2026" and choose "Make Available Offline", then turn on Airplane Mode: the folder still opens.
+- Files app > Browse > Plume: the same files, as a file provider location.
+- In Photos, share a photo to Plume and pick a folder: it is uploaded.
+- Long-press a file > Share Links and Access, Versions; trash button in the toolbar for deleted files.
+- On Mac: Plume appears in the Finder sidebar; the app window has the same browsing and search.
+
+ACCOUNT DELETION (5.1.1(v))
+Plume does not create accounts. The Nextcloud account belongs to the user's server and is managed there. Sign Out (Settings) removes the app password and every local copy, thumbnail and database from the device.
+
+PRIVACY
+No analytics, no tracking, no third-party SDKs. Data goes only to the server the user enters. Local Network permission is asked only because many Nextcloud servers run at home on a private address.
+
+Plume is an independent app, not affiliated with or endorsed by Nextcloud GmbH.

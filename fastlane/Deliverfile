@@ -1,0 +1,30 @@
+app_identifier(ENV.fetch("PLUME_BUNDLE_PREFIX"))
+api_key(
+  key_id: ENV.fetch("ASC_KEY_ID"),
+  issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+  key: File.read(File.expand_path(ENV.fetch("ASC_KEY_PATH"))),
+  in_house: false
+)
+platform(ENV.fetch("PLUME_PLATFORM", "ios"))
+metadata_path("./fastlane/metadata")
+screenshots_path(ENV.fetch("PLUME_PLATFORM", "ios") == "osx" ? "./fastlane/screenshots-mac" : "./fastlane/screenshots")
+app_rating_config_path("./fastlane/rating_config.json")
+skip_binary_upload(true)
+skip_app_version_update(true)
+submit_for_review(false)
+automatic_release(false)
+overwrite_screenshots(true)
+precheck_include_in_app_purchases(false)
+
+if ENV["PLUME_REVIEW_SERVER"]
+  notes = File.read(File.expand_path("../docs/app-store/review-notes.txt", __dir__))
+  app_review_information(
+    first_name: ENV.fetch("PLUME_REVIEW_FIRST_NAME"),
+    last_name: ENV.fetch("PLUME_REVIEW_LAST_NAME"),
+    phone_number: ENV.fetch("PLUME_REVIEW_PHONE"),
+    email_address: ENV.fetch("PLUME_REVIEW_EMAIL"),
+    demo_user: ENV.fetch("PLUME_REVIEW_DEMO_USER"),
+    demo_password: ENV.fetch("PLUME_REVIEW_DEMO_PASSWORD"),
+    notes: notes.gsub("{{SERVER}}", ENV.fetch("PLUME_REVIEW_SERVER"))
+  )
+end
