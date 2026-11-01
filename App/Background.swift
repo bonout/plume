@@ -37,12 +37,6 @@ final class Background {
             let box = UncheckedTask(task)
             Task { @MainActor in Background.shared.refresh(box.task) }
         }
-        if #available(iOS 26, *) {
-            BGTaskScheduler.shared.register(forTaskWithIdentifier: uploadPrefix + "*", using: nil) { task in
-                let box = UncheckedTask(task)
-                Task { @MainActor in Background.shared.runUploads(box.task) }
-            }
-        }
         #endif
     }
 
@@ -94,10 +88,10 @@ final class Background {
             }
             return
         }
-        if #available(iOS 26, *), !uploadsSubmitted {
+        if #available(iOS 26, *), !uploadsSubmitted, let identifier = registerUploads() {
             uploadsSubmitted = true
             let request = BGContinuedProcessingTaskRequest(
-                identifier: uploadPrefix + UUID().uuidString,
+                identifier: identifier,
                 title: "Uploading to Plume",
                 subtitle: count == 1 ? "1 file" : "\(count) files")
             request.strategy = .queue
@@ -106,6 +100,7 @@ final class Background {
                 currentProgress = progress
                 return
             } catch {
+                uploadsSubmitted = false
                 log.error("Continued upload not submitted: \(error, privacy: .public)")
             }
         }
@@ -124,6 +119,20 @@ final class Background {
     private var currentProgress: Progress?
 
     #if os(iOS)
+    @available(iOS 26, *)
+    private func registerUploads() -> String? {
+        let identifier = uploadPrefix + UUID().uuidString
+        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
+            let box = UncheckedTask(task)
+            Task { @MainActor in Background.shared.runUploads(box.task) }
+        }
+        guard registered else {
+            log.error("Continued upload handler not registered")
+            return nil
+        }
+        return identifier
+    }
+
     @available(iOS 26, *)
     private func runUploads(_ task: BGTask) {
         guard let task = task as? BGContinuedProcessingTask, uploadsSubmitted else {
