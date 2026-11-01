@@ -15,6 +15,15 @@ final class AppModel {
     /// The local copy shown by Quick Look.
     var previewURL: URL?
     private(set) var opening: Set<RemoteItem.ID> = []
+    var sortOrder = SortOrder(
+        field: SortField(rawValue: UserDefaults.standard.string(forKey: "sortField") ?? "") ?? .name,
+        ascending: UserDefaults.standard.object(forKey: "sortAscending") as? Bool ?? true
+    ) {
+        didSet {
+            UserDefaults.standard.set(sortOrder.field.rawValue, forKey: "sortField")
+            UserDefaults.standard.set(sortOrder.ascending, forKey: "sortAscending")
+        }
+    }
     /// Files opened in Plume from another app, waiting for a destination.
     var pendingImports: [URL] = []
     var errorMessage: String?
@@ -64,6 +73,7 @@ final class AppModel {
             AccountStore.remove()
             MetadataStore.removeAllDatabases()
             AppGroup.defaults.removeObject(forKey: "indexComplete")
+            indexComplete = false
             AppGroup.defaults.removeObject(forKey: "lastServer")
             lastServer = ""
         }

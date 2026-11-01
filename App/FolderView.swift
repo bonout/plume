@@ -22,8 +22,10 @@ struct FolderView: View {
         Group {
             if !model.searchText.isEmpty {
                 SearchResults(term: model.searchText)
+            } else if !loaded && items.isEmpty {
+                SkeletonList()
             } else {
-                ItemList(items: items)
+                ItemList(items: model.sortOrder.sorted(items))
                     .overlay {
                         if loaded && items.isEmpty {
                             ContentUnavailableView("Empty Folder", systemImage: "folder",
@@ -46,6 +48,7 @@ struct FolderView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
+                SortMenu()
                 Menu("Add", systemImage: "plus") {
                     Button("Upload Files…", systemImage: "arrow.up.doc") { importing = true }
                     Button("New Folder", systemImage: "folder.badge.plus") { creatingFolder = true }
@@ -107,7 +110,11 @@ struct SearchResults: View {
     var body: some View {
         ItemList(items: items, showsLocation: true)
             .overlay {
-                if items.isEmpty && !searching { ContentUnavailableView.search(text: term) }
+                if items.isEmpty && searching {
+                    SkeletonList(rows: 6)
+                } else if items.isEmpty {
+                    ContentUnavailableView.search(text: term)
+                }
             }
             .task(id: "\(term)|\(model.repository != nil)|\(model.indexComplete)") {
                 guard let repository = model.repository else { return }
@@ -128,7 +135,7 @@ struct FavoritesView: View {
     @State private var items: [RemoteItem] = []
 
     var body: some View {
-        ItemList(items: items, showsLocation: true)
+        ItemList(items: model.sortOrder.sorted(items), showsLocation: true)
             .overlay {
                 if items.isEmpty {
                     ContentUnavailableView("No Favorites", systemImage: "star",
@@ -136,6 +143,7 @@ struct FavoritesView: View {
                 }
             }
             .navigationTitle("Favorites")
+            .toolbar { ToolbarItem(placement: .primaryAction) { SortMenu() } }
             .refreshable { await load() }
             .task(id: model.revision) { await load() }
     }
@@ -154,7 +162,7 @@ struct OfflineView: View {
     @State private var items: [RemoteItem] = []
 
     var body: some View {
-        ItemList(items: items, showsLocation: true)
+        ItemList(items: model.sortOrder.sorted(items), showsLocation: true)
             .overlay {
                 if items.isEmpty {
                     ContentUnavailableView("Nothing Offline", systemImage: "arrow.down.circle",
@@ -162,6 +170,7 @@ struct OfflineView: View {
                 }
             }
             .navigationTitle("Offline")
+            .toolbar { ToolbarItem(placement: .primaryAction) { SortMenu() } }
             .task(id: model.revision) {
                 guard let store = model.repository?.store else { return }
                 items = store.pinnedPaths().compactMap { store.item(at: $0) }
