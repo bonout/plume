@@ -51,7 +51,8 @@ public final class NextcloudClient: Sendable {
 
     /// `<server>/remote.php/dav/files/<user>`
     public var filesURL: URL {
-        account.server.appending(path: "remote.php/dav/files/\(account.userID)", directoryHint: .notDirectory)
+        guard account.isNextcloud else { return account.server }
+        return account.server.appending(path: "remote.php/dav/files/\(account.userID)", directoryHint: .notDirectory)
     }
 
     public func url(for path: RemotePath) -> URL {
@@ -102,6 +103,7 @@ public final class NextcloudClient: Sendable {
 
     /// Files and folders whose name contains `term`, anywhere in the account.
     public func search(_ term: String, limit: Int = 100) async throws -> [RemoteItem] {
+        guard account.isNextcloud else { return [] }
         let like = "%" + term
             .replacingOccurrences(of: "%", with: "")
             .replacingOccurrences(of: "_", with: "") + "%"
@@ -125,6 +127,7 @@ public final class NextcloudClient: Sendable {
 
     /// Everything marked as favorite, anywhere in the account.
     public func favorites() async throws -> [RemoteItem] {
+        guard account.isNextcloud else { return [] }
         var request = request(url(for: .root), method: "REPORT")
         request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("""
@@ -139,6 +142,7 @@ public final class NextcloudClient: Sendable {
     }
 
     public func setFavorite(_ favorite: Bool, at path: RemotePath) async throws {
+        guard account.isNextcloud else { throw PlumeError.unsupported }
         var request = request(url(for: path), method: "PROPPATCH")
         request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("""
@@ -164,6 +168,7 @@ public final class NextcloudClient: Sendable {
 
     /// Renames or moves; never replaces an existing item.
     public func move(_ source: RemotePath, to destination: RemotePath) async throws -> RemoteItem {
+        try await ensureAbsent(destination)
         var request = request(url(for: source), method: "MOVE")
         request.setValue(url(for: destination).absoluteString, forHTTPHeaderField: "Destination")
         request.setValue("F", forHTTPHeaderField: "Overwrite")
@@ -205,17 +210,28 @@ public final class NextcloudClient: Sendable {
                        progress: Progress? = nil) async throws -> RemoteItem {
         let size = (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         let mtime = modified ?? (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
-        if size > Self.chunkSize {
+        if !overwrite { try await ensureAbsent(path) }
+        if size > Self.chunkSize && account.isNextcloud {
             try await uploadInChunks(file, size: size, to: path, overwrite: overwrite, modified: mtime, progress: progress)
         } else {
             var request = request(url(for: path), method: "PUT")
             if !overwrite { request.setValue("*", forHTTPHeaderField: "If-None-Match") }
-            if let mtime { request.setValue(String(Int(mtime.timeIntervalSince1970)), forHTTPHeaderField: "X-OC-Mtime") }
+            if let mtime, account.isNextcloud { request.setValue(String(Int(mtime.timeIntervalSince1970)), forHTTPHeaderField: "X-OC-Mtime") }
             let delegate = ProgressDelegate(parent: progress)
             let (data, response) = try await session.upload(for: request, fromFile: file, delegate: delegate)
             try check(response, data: data)
         }
         return try await item(at: path)
+    }
+
+    private func ensureAbsent(_ path: RemotePath) async throws {
+        guard !account.isNextcloud else { return }
+        do {
+            _ = try await item(at: path)
+        } catch PlumeError.notFound {
+            return
+        }
+        throw PlumeError.alreadyExists
     }
 
     /// Chunked upload v2: chunks go to a temporary folder of the uploads
@@ -265,7 +281,7 @@ public final class NextcloudClient: Sendable {
 
     /// A thumbnail rendered by the server, `nil` when it has none.
     public func preview(of item: RemoteItem, size: Int) async throws -> Data? {
-        guard item.hasPreview, !item.fileID.isEmpty else { return nil }
+        guard account.isNextcloud, item.hasPreview, !item.fileID.isEmpty else { return nil }
         var components = URLComponents(url: account.server.appending(path: "index.php/core/preview"),
                                        resolvingAgainstBaseURL: false)!
         components.queryItems = [
@@ -291,6 +307,7 @@ public final class NextcloudClient: Sendable {
     }
 
     public func userInfo() async throws -> UserInfo {
+        guard account.isNextcloud else { return try await davQuota() }
         let json = try await ocs("ocs/v2.php/cloud/user", method: "GET")
         guard let data = json as? [String: Any], let id = data["id"] as? String else {
             throw PlumeError.invalidResponse("user")
@@ -302,9 +319,20 @@ public final class NextcloudClient: Sendable {
                         quotaTotal: total.flatMap { $0 > 0 ? $0 : nil })
     }
 
+    func davQuota() async throws -> UserInfo {
+        let data = try await propfindData(url(for: .root), depth: "0",
+                                          properties: "<d:prop><d:quota-used-bytes/><d:quota-available-bytes/></d:prop>")
+        let props = try DAVParser.responses(data).first?.props ?? [:]
+        let used = props["quota-used-bytes"].flatMap { Int64($0) }
+        let available = props["quota-available-bytes"].flatMap { Int64($0) }.flatMap { $0 >= 0 ? $0 : nil }
+        return UserInfo(id: account.loginName, displayName: nil, quotaUsed: used,
+                        quotaTotal: used.flatMap { used in available.map { used + $0 } })
+    }
+
     /// A public link to the item: the existing one if there is one, a new
     /// read-only one otherwise.
     public func publicLink(for path: RemotePath) async throws -> URL {
+        guard account.isNextcloud else { throw PlumeError.unsupported }
         let endpoint = "ocs/v2.php/apps/files_sharing/api/v1/shares"
         let existing = try await ocs(endpoint, method: "GET",
                                      query: [.init(name: "path", value: path.absolute),
@@ -324,6 +352,7 @@ public final class NextcloudClient: Sendable {
 
     /// Revokes this app password on the server (sign out).
     public func revokeAppPassword() async throws {
+        guard account.isNextcloud else { return }
         _ = try await ocs("ocs/v2.php/core/apppassword", method: "DELETE")
     }
 

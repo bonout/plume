@@ -171,3 +171,80 @@ struct ErrorTests {
         }
     }
 }
+
+@Suite struct WebDAVIdentityTests {
+    func makeStore() throws -> MetadataStore {
+        try MetadataStore(url: FileManager.default.temporaryDirectory
+            .appending(path: "plume-tests-\(UUID().uuidString)/store.sqlite"))
+    }
+
+    func item(_ path: String, directory: Bool = false) -> RemoteItem {
+        RemoteItem(path: RemotePath(path), fileID: "", isDirectory: directory, etag: "")
+    }
+
+    @Test func itemsWithoutIDsGetStableOnes() throws {
+        let store = try makeStore()
+        let first = store.upsert(item("Docs/a.pdf"))
+        #expect(first.fileID.hasPrefix("w"))
+        #expect(store.upsert(item("Docs/a.pdf")).fileID == first.fileID)
+        #expect(store.identified([item("Docs/a.pdf")]).first?.fileID == first.fileID)
+        #expect(store.upsert(item("Docs/b.pdf")).fileID != first.fileID)
+        #expect(store.item(fileID: first.fileID)?.path == RemotePath("Docs/a.pdf"))
+    }
+
+    @Test func listingsGetIDsToo() throws {
+        let store = try makeStore()
+        store.replaceChildren(of: item("", directory: true), with: [item("Docs", directory: true), item("x.txt")])
+        #expect(store.children(of: .root).allSatisfy { !$0.fileID.isEmpty })
+    }
+
+    @Test func movesKeepIDsForTheWholeSubtree() throws {
+        let store = try makeStore()
+        let folder = store.upsert(item("Docs", directory: true))
+        let file = store.upsert(item("Docs/Sub/a.pdf"))
+        store.upsert(item("Docs/Sub", directory: true))
+        store.move(RemotePath("Docs"), to: RemotePath("Archive/Docs 2024"))
+        #expect(store.item(at: RemotePath("Archive/Docs 2024"))?.fileID == folder.fileID)
+        #expect(store.item(at: RemotePath("Archive/Docs 2024/Sub/a.pdf"))?.fileID == file.fileID)
+        #expect(store.item(at: RemotePath("Archive/Docs 2024/Sub/a.pdf"))?.path.parent == RemotePath("Archive/Docs 2024/Sub"))
+        #expect(store.children(of: RemotePath("Archive/Docs 2024/Sub")).map(\.fileID) == [file.fileID])
+        #expect(store.item(at: RemotePath("Docs")) == nil)
+        #expect(store.search("docs 2024").map(\.fileID) == [folder.fileID])
+        #expect(store.upsert(item("Archive/Docs 2024/Sub/a.pdf")).fileID == file.fileID)
+    }
+
+    @Test func aNewItemAtAMovedPathGetsANewID() throws {
+        let store = try makeStore()
+        let moved = store.upsert(item("a.txt"))
+        store.move(RemotePath("a.txt"), to: RemotePath("b.txt"))
+        let fresh = store.upsert(item("a.txt"))
+        #expect(fresh.fileID != moved.fileID)
+        #expect(store.item(fileID: moved.fileID)?.path == RemotePath("b.txt"))
+        #expect(store.item(fileID: fresh.fileID)?.path == RemotePath("a.txt"))
+    }
+
+    @Test func savedAccountsStayNextcloud() throws {
+        let saved = Data(#"{"server":"https://cloud.example.com","loginName":"a","userID":"a"}"#.utf8)
+        let account = try JSONDecoder().decode(Account.self, from: saved)
+        #expect(account.kind == .nextcloud)
+        let webdav = Account(server: URL(string: "https://nas.example.com/dav")!, loginName: "a", userID: "a", kind: .webdav)
+        #expect(try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(webdav)).kind == .webdav)
+    }
+
+    @Test func webDAVAddresses() {
+        #expect(LoginFlow.webDAVURL("nas.example.com/dav/")?.absoluteString == "https://nas.example.com/dav")
+        #expect(LoginFlow.webDAVURL("http://192.168.1.2:8080/remote.php/webdav")?.absoluteString
+                == "http://192.168.1.2:8080/remote.php/webdav")
+        #expect(LoginFlow.webDAVURL("ftp://example.com") == nil)
+        #expect(LoginFlow.webDAVURL(" ") == nil)
+    }
+
+    @Test func webDAVClientUsesTheAddressAsRoot() {
+        let client = NextcloudClient(credentials: Credentials(
+            account: Account(server: URL(string: "https://nas.example.com/dav")!, loginName: "a", userID: "a", kind: .webdav),
+            appPassword: "p"))
+        #expect(client.url(for: RemotePath("My Files/é.txt")).absoluteString
+                == "https://nas.example.com/dav/My%20Files/%C3%A9.txt")
+        #expect(ServerCapabilities(account: client.account).favorites == false)
+    }
+}

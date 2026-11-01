@@ -63,14 +63,26 @@ public struct ServerCapabilities: Sendable {
     public var linksEnabled = true
     public var versions = true
     public var trash = true
+    public var sharing = true
+    public var favorites = true
 
     public init() {}
+
+    public init(account: Account) {
+        guard !account.isNextcloud else { return }
+        linksEnabled = false
+        versions = false
+        trash = false
+        sharing = false
+        favorites = false
+    }
 }
 
 extension NextcloudClient {
     private static let sharesEndpoint = "ocs/v2.php/apps/files_sharing/api/v1/shares"
 
     public func capabilities() async throws -> ServerCapabilities {
+        guard account.isNextcloud else { return ServerCapabilities(account: account) }
         let data = try await ocs("ocs/v2.php/cloud/capabilities", method: "GET") as? [String: Any]
         let all = data?["capabilities"] as? [String: Any] ?? [:]
         var result = ServerCapabilities()

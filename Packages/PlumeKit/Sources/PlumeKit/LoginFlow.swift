@@ -77,6 +77,36 @@ public struct LoginFlow: Sendable {
         }
     }
 
+    public static func webDAVURL(_ input: String) -> URL? {
+        var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        if !text.contains("://") { text = "https://" + text }
+        guard var components = URLComponents(string: text), components.host?.isEmpty == false,
+              ["http", "https"].contains(components.scheme?.lowercased() ?? "") else { return nil }
+        components.query = nil
+        components.fragment = nil
+        var path = components.path
+        while path.hasSuffix("/") { path.removeLast() }
+        components.path = path
+        return components.url
+    }
+
+    public static func signInWebDAV(server: URL, user: String, password: String) async throws -> Credentials {
+        let credentials = Credentials(
+            account: Account(server: server, loginName: user, userID: user, kind: .webdav),
+            appPassword: password)
+        do {
+            let root = try await NextcloudClient(credentials: credentials).item(at: .root)
+            guard root.isDirectory else { throw PlumeError.notWebDAV }
+        } catch let error as PlumeError {
+            switch error {
+            case .unauthorized, .offline, .untrustedCertificate, .forbidden: throw error
+            default: throw PlumeError.notWebDAV
+            }
+        }
+        return credentials
+    }
+
     /// Checks an app password and looks up the user id (which the WebDAV
     /// path needs, and which isn't always the login name).
     public static func complete(server: URL, loginName: String, appPassword: String) async throws -> Credentials {
