@@ -109,7 +109,7 @@ struct SearchResults: View {
             .overlay {
                 if items.isEmpty && !searching { ContentUnavailableView.search(text: term) }
             }
-            .task(id: term) {
+            .task(id: "\(term)|\(model.repository != nil)|\(model.indexComplete)") {
                 guard let repository = model.repository else { return }
                 items = repository.store.search(term)
                 guard !model.indexComplete else { return }
