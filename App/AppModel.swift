@@ -14,6 +14,7 @@ final class AppModel {
     private(set) var transfers: [Transfer] = []
     /// The local copy shown by Quick Look.
     var previewURL: URL?
+    private(set) var opening: Set<RemoteItem.ID> = []
     /// Files opened in Plume from another app, waiting for a destination.
     var pendingImports: [URL] = []
     var errorMessage: String?
@@ -242,11 +243,14 @@ final class AppModel {
     /// Downloads if needed, then shows the file in Quick Look.
     func open(_ item: RemoteItem) {
         guard let repository, !item.isDirectory else { return }
+        guard !opening.contains(item.id) else { return }
         if let url = repository.files.existingCopy(of: item) {
             previewURL = url
             return
         }
+        opening.insert(item.id)
         Task {
+            defer { opening.remove(item.id) }
             if let url = await localCopy(of: item) { previewURL = url }
         }
     }

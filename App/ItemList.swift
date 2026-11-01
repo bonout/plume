@@ -179,7 +179,10 @@ struct ItemRow: View {
                 Image(systemName: "arrow.down.circle.fill").font(.caption).foregroundStyle(.secondary)
                     .accessibilityLabel("Available offline")
             }
-            if item.isDirectory {
+            if model.opening.contains(item.id) {
+                ProgressView().controlSize(.small)
+                    .accessibilityLabel("Downloading")
+            } else if item.isDirectory {
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
@@ -189,6 +192,8 @@ struct ItemRow: View {
         .accessibilityHint(item.isDirectory ? "Opens the folder" : "Shows the file")
         .padding(.vertical, 2)
         .contentShape(.rect)
+        .opacity(model.opening.contains(item.id) ? 0.6 : 1)
+        .sensoryFeedback(.selection, trigger: model.opening.contains(item.id)) { _, new in new }
         .task(id: item.etag) {
             guard item.hasPreview, let client = model.repository?.client else { return }
             thumbnail = model.thumbnails.cached(item)
