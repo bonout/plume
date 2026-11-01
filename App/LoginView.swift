@@ -118,7 +118,7 @@ struct LoginView: View {
                 try model.signIn(credentials)
             } catch is CancellationError {
             } catch PlumeError.unauthorized where manual {
-                self.error = "Wrong login or app password. With two-factor authentication, your account password won't work here: create an app password in Nextcloud under Settings → Security, or sign in with the browser."
+                self.error = String(localized: "Wrong login or app password. With two-factor authentication, your account password won't work here: create an app password in Nextcloud under Settings → Security, or sign in with the browser.")
             } catch {
                 self.error = error.localizedDescription
             }

@@ -121,7 +121,7 @@ final class AppModel {
 
     private func activate(_ credentials: Credentials) {
         guard let store = try? MetadataStore.named("app") else {
-            errorMessage = "The local database can't be opened."
+            errorMessage = String(localized: "The local database can't be opened.")
             return
         }
         self.credentials = credentials

@@ -156,7 +156,7 @@ struct TrashView: View {
         }
         .refreshable { await load() }
         .task(id: model.revision) { await load() }
-        .confirmationDialog(deleting.map { "Delete “\($0.name)” permanently?" } ?? "",
+        .confirmationDialog(deleting.map { String(localized: "Delete “\($0.name)” permanently?") } ?? "",
                             isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
                             titleVisibility: .visible) {
             Button("Delete Permanently", role: .destructive) {
@@ -176,7 +176,7 @@ struct TrashView: View {
         var parts: [String] = []
         if let deleted = item.deleted { parts.append("Deleted " + deleted.formatted(.relative(presentation: .named))) }
         let folder = item.originalLocation.parent ?? .root
-        parts.append("from " + (folder.isRoot ? "Files" : folder.rawValue))
+        parts.append(String(localized: "from \(folder.isRoot ? String(localized: "Files") : folder.rawValue)"))
         return parts.joined(separator: " · ")
     }
 

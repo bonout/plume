@@ -15,7 +15,7 @@ public struct FolderPicker: View {
 
     /// Opens on `initial` (the last folder used, typically), with its
     /// parents in the back stack.
-    public init(repository: Repository, title: String, actionTitle: String = "Save Here", initial: RemotePath = .root,
+    public init(repository: Repository, title: String, actionTitle: String = String(localized: "Save Here"), initial: RemotePath = .root,
                 onPick: @escaping (RemotePath) -> Void, onCancel: @escaping () -> Void) {
         self.repository = repository
         _path = State(initialValue: initial.ancestry)
@@ -84,10 +84,10 @@ private struct FolderPickerList: View {
         .overlay {
             if folders.isEmpty && error == nil {
                 ContentUnavailableView("No Folders", systemImage: "folder",
-                                       description: Text("Files will be saved in \(folder.isRoot ? "your files" : folder.name)."))
+                                       description: Text("Files will be saved in \(folder.isRoot ? String(localized: "your files") : folder.name)."))
             }
         }
-        .navigationTitle(folder.isRoot ? "Files" : folder.name)
+        .navigationTitle(folder.isRoot ? String(localized: "Files") : folder.name)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("New Folder", systemImage: "folder.badge.plus") { showingNewFolder = true }

@@ -34,7 +34,7 @@ struct SettingsView: View {
                 LabeledContent("Available offline", value: bytes(offlineSize))
                 LabeledContent("Recently opened", value: bytes(cacheSize))
                 LabeledContent("Indexed for search", value: model.indexComplete
-                               ? "\(indexed.formatted()) items" : "In progress…")
+                               ? String(localized: "\(indexed.formatted()) items") : String(localized: "In progress…"))
                 Button("Clear Recently Opened Files") {
                     model.repository?.files.clearCache()
                     measure()

@@ -21,7 +21,7 @@ final class FlowTests: XCTestCase {
     }
 
     private func launch(_ arguments: [String]) {
-        app.launchArguments = arguments
+        app.launchArguments = ["-AppleLanguages", "(en-US)", "-AppleLocale", "en_US"] + arguments
         app.launch()
     }
 

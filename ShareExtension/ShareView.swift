@@ -10,7 +10,7 @@ struct ShareView: View {
         case .loading:
             ProgressView("Preparing…").padding(40)
         case .signedOut:
-            message("Open Plume and sign in to your server first.", symbol: "person.crop.circle.badge.exclamationmark")
+            message(String(localized: "Open Plume and sign in to your server first."), symbol: "person.crop.circle.badge.exclamationmark")
         case .picking:
             if let repository = model.repository {
                 FolderPicker(repository: repository, title: title, initial: model.lastFolder,
@@ -23,14 +23,14 @@ struct ShareView: View {
             }
             .padding(40)
         case .done:
-            message("Saved", symbol: "checkmark.circle.fill")
+            message(String(localized: "Saved"), symbol: "checkmark.circle.fill")
         case .failed(let text):
             message(text, symbol: "exclamationmark.triangle.fill")
         }
     }
 
     private var title: String {
-        model.files.count == 1 ? "Save “\(model.files[0].lastPathComponent)”" : "Save \(model.files.count) Files"
+        model.files.count == 1 ? String(localized: "Save “\(model.files[0].lastPathComponent)”") : String(localized: "Save \(model.files.count) Files")
     }
 
     private func message(_ text: String, symbol: String) -> some View {
