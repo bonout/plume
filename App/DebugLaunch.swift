@@ -55,7 +55,7 @@ enum DebugLaunch {
     @MainActor
     static func apply(to model: AppModel) async {
         guard let repository = model.repository else { return }
-        if let pin, let item = try? await repository.client.item(at: pin) {
+        if let pin, let item = (try? await repository.client.item(at: pin)).map({ repository.store.upsert($0) }) {
             try? await repository.makeAvailableOffline(item)
         }
         if let importSample {
@@ -64,7 +64,7 @@ enum DebugLaunch {
             try? await Task.sleep(for: .seconds(2))
             model.pendingImports = [url]
         }
-        if let preview, let item = try? await repository.client.item(at: preview) {
+        if let preview, let item = (try? await repository.client.item(at: preview)).map({ repository.store.upsert($0) }) {
             // After the initial navigation, or Quick Look is dropped.
             try? await Task.sleep(for: .seconds(2))
             model.open(item)

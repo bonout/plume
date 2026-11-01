@@ -31,6 +31,16 @@
         }
       }
     },
+    "A light client for Nextcloud and WebDAV.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un client léger pour Nextcloud et WebDAV."
+          }
+        }
+      }
+    },
     "A light client for your Nextcloud.": {
       "localizations": {
         "fr": {
@@ -441,6 +451,16 @@
         }
       }
     },
+    "Enter the address of your WebDAV folder, your user name and your password.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez l’adresse de votre dossier WebDAV, votre nom d’utilisateur et votre mot de passe."
+          }
+        }
+      }
+    },
     "Everything in it is deleted permanently. This can't be undone.": {
       "localizations": {
         "fr": {
@@ -691,6 +711,16 @@
         }
       }
     },
+    "Nextcloud": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nextcloud"
+          }
+        }
+      }
+    },
     "Nextcloud is free, open-source software for keeping your files on a server you choose: one you run at home, or one from a hosting provider. Your files stay on that server, not with a big tech company.": {
       "localizations": {
         "fr": {
@@ -727,6 +757,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aucun serveur Nextcloud n’a répondu à cette adresse. Saisissez l’adresse que vous utilisez pour ouvrir Nextcloud dans un navigateur, par exemple cloud.example.com."
+          }
+        }
+      }
+    },
+    "No WebDAV folder answered at this address. Enter the full address of the WebDAV folder, for example https://nas.example.com/webdav.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun dossier WebDAV n’a répondu à cette adresse. Saisissez l’adresse complète du dossier WebDAV, par exemple https://nas.example.com/webdav."
           }
         }
       }
@@ -1491,6 +1531,16 @@
         }
       }
     },
+    "This server doesn't support this action.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce serveur ne prend pas en charge cette action."
+          }
+        }
+      }
+    },
     "To use Plume you need a Nextcloud account. Enter the address you use to open Nextcloud in a browser, then sign in there: Plume receives its own app password, which you can revoke at any time.": {
       "localizations": {
         "fr": {
@@ -1561,6 +1611,16 @@
         }
       }
     },
+    "User name": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d’utilisateur"
+          }
+        }
+      }
+    },
     "Versions": {
       "localizations": {
         "fr": {
@@ -1601,6 +1661,16 @@
         }
       }
     },
+    "WebDAV": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WebDAV"
+          }
+        }
+      }
+    },
     "What is Nextcloud?": {
       "localizations": {
         "fr": {
@@ -1617,6 +1687,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Identifiant ou mot de passe d’application incorrect. Avec la double authentification, le mot de passe du compte ne fonctionne pas ici : créez un mot de passe d’application dans Nextcloud, sous Paramètres → Sécurité, ou connectez-vous avec le navigateur."
+          }
+        }
+      }
+    },
+    "Wrong user name or password.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d’utilisateur ou mot de passe incorrect."
           }
         }
       }
@@ -1657,6 +1737,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "de %@"
+          }
+        }
+      }
+    },
+    "https://nas.example.com/webdav": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https://nas.example.com/webdav"
           }
         }
       }
