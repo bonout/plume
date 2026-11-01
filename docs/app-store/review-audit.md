@@ -18,6 +18,10 @@ someone outside the code).
 | 7 | Timeout and offline | `PlumeError.offline`, `FolderView` banner | Already handled: cached contents shown with an offline banner | ok |
 | 8 | Quota full (507) | `PlumeError.insufficientStorage` | Already explained; the upload stays in the outbox | ok |
 | 9 | Placeholder text, dead buttons | all views | None found; every button acts | ok |
+| 31 | Any upload crashed on iOS 26 (2.1 crash on launch-path feature): the continued-processing task was submitted without a registered handler | `Background.uploadsChanged` | Handler registered with the exact identifier before submission, fallback to the grace period; also PR #5 for main | fixed |
+| 32 | The folder picker lost Save Here and Cancel in subfolders, so files could only be saved at the top level | `FolderPicker` | Toolbar applied to every level | fixed |
+| 33 | Tapping a file gave no feedback while it downloaded, inviting repeated taps | `ItemRow`, `AppModel.open` | Spinner and haptic on the row, repeated taps ignored | fixed |
+| 34 | The offline badge didn't appear after pinning until the list reloaded | `AppModel.isPinned` | Rows follow the model's revision | fixed |
 
 ## Reviewer access (2.1, 4.2)
 
