@@ -14,3 +14,8 @@ xcuserdata/
 *.p12
 *.p8
 .env
+
+# App Review contact and demo account: from environment variables only.
+/fastlane/metadata/review_information/
+/fastlane/report.xml
+/fastlane/README.md
