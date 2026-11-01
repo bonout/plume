@@ -138,7 +138,7 @@ final class DAVParser: NSObject, XMLParserDelegate {
             modified: props["getlastmodified"].flatMap { dateFormatter.date(from: $0) },
             etag: (props["getetag"] ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")),
             contentType: props["getcontenttype"].flatMap { $0.isEmpty ? nil : $0 },
-            permissions: props["permissions"] ?? "",
+            permissions: props["permissions"] ?? "RGDNVWCK",
             isFavorite: props["favorite"] == "1",
             hasPreview: props["has-preview"] == "true"
         )

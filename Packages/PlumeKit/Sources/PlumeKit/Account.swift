@@ -4,6 +4,11 @@ import Security
 /// The signed-in Nextcloud account. Its app password lives in the keychain,
 /// never here.
 public struct Account: Codable, Sendable, Hashable, Identifiable {
+    public enum Kind: String, Codable, Sendable {
+        case nextcloud, webdav
+    }
+
+    public var kind: Kind
     /// Base URL of the server, e.g. `https://cloud.example.com` (a
     /// subdirectory install keeps its path).
     public var server: URL
@@ -14,12 +19,24 @@ public struct Account: Codable, Sendable, Hashable, Identifiable {
     public var userID: String
     public var displayName: String?
 
-    public init(server: URL, loginName: String, userID: String, displayName: String? = nil) {
+    public init(server: URL, loginName: String, userID: String, displayName: String? = nil, kind: Kind = .nextcloud) {
+        self.kind = kind
         self.server = server
         self.loginName = loginName
         self.userID = userID
         self.displayName = displayName
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try container.decodeIfPresent(Kind.self, forKey: .kind) ?? .nextcloud
+        server = try container.decode(URL.self, forKey: .server)
+        loginName = try container.decode(String.self, forKey: .loginName)
+        userID = try container.decode(String.self, forKey: .userID)
+        displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+    }
+
+    public var isNextcloud: Bool { kind == .nextcloud }
 
     public var id: String { "\(userID)@\(server.host() ?? server.absoluteString)" }
     public var host: String { server.host() ?? server.absoluteString }

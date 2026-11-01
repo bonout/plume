@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SQLite3
 import Synchronization
@@ -116,8 +117,42 @@ public final class MetadataStore: Sendable {
 
     // MARK: Writing
 
-    public func upsert(_ item: RemoteItem) {
-        connection.withLock { db in try? Self.upsert(item, in: db) }
+    @discardableResult
+    public func upsert(_ item: RemoteItem) -> RemoteItem {
+        connection.withLock { db in
+            let identified = (try? Self.identified(item, in: db)) ?? item
+            try? Self.upsert(identified, in: db)
+            return identified
+        }
+    }
+
+    /// Items from a server without file ids (plain WebDAV) get one here:
+    /// the one already known at their path, or a new one derived from it.
+    public func identified(_ items: [RemoteItem]) -> [RemoteItem] {
+        guard items.contains(where: { $0.fileID.isEmpty }) else { return items }
+        return connection.withLock { db in items.map { (try? Self.identified($0, in: db)) ?? $0 } }
+    }
+
+    /// Records a rename or move done here, so the item and everything below
+    /// it keep their ids at the new path.
+    public func move(_ source: RemotePath, to destination: RemotePath) {
+        guard source != destination, !source.isRoot else { return }
+        connection.withLock { db in
+            _ = try? db.transaction {
+                _ = try Self.deleteSubtree(destination, in: db)
+                let start = source.rawValue.unicodeScalars.count + 1
+                try db.run("""
+                    UPDATE items SET
+                      parent = CASE WHEN path = ? THEN ? ELSE ? || substr(parent, ?) END,
+                      path = ? || substr(path, ?)
+                    WHERE path = ? OR substr(path, 1, ?) = ?
+                    """, [source.rawValue, (destination.parent ?? .root).rawValue, destination.rawValue, start,
+                          destination.rawValue, start,
+                          source.rawValue, start, source.rawValue + "/"])
+                try db.run("UPDATE items SET search_name = ? WHERE path = ?",
+                           [Self.fold(destination.name), destination.rawValue])
+            }
+        }
     }
 
     /// Records a fresh listing of a folder. Returns the items that were known
@@ -136,9 +171,9 @@ public final class MetadataStore: Sendable {
                 for child in children {
                     // A folder whose etag changed keeps its old listing etag:
                     // that's how the next sync knows to look inside.
-                    try Self.upsert(child, in: db)
+                    try Self.upsert(try Self.identified(child, in: db), in: db)
                 }
-                try Self.upsert(folder, in: db)
+                try Self.upsert(try Self.identified(folder, in: db), in: db)
                 try db.run("UPDATE items SET listed_etag = ? WHERE path = ?", [folder.etag, folder.path.rawValue])
                 return removed
             }) ?? []
@@ -202,6 +237,26 @@ public final class MetadataStore: Sendable {
             permissions: row.text(8) ?? "",
             isFavorite: row.int(9) != 0,
             hasPreview: row.int(10) != 0)
+    }
+
+    private static func identified(_ item: RemoteItem, in db: Connection) throws -> RemoteItem {
+        guard item.fileID.isEmpty, !item.path.isRoot else { return item }
+        var item = item
+        if let known = try db.rows("SELECT file_id FROM items WHERE path = ?", [item.path.rawValue], { $0.text(0) ?? "" })
+            .first, !known.isEmpty {
+            item.fileID = known
+            return item
+        }
+        let digest = SHA256.hash(data: Data(item.path.rawValue.utf8)).prefix(12).map { String(format: "%02x", $0) }.joined()
+        var candidate = "w" + digest
+        var attempt = 1
+        while try !db.rows("SELECT 1 FROM items WHERE file_id = ? AND path != ? LIMIT 1",
+                           [candidate, item.path.rawValue], { _ in true }).isEmpty {
+            attempt += 1
+            candidate = "w\(digest)-\(attempt)"
+        }
+        item.fileID = candidate
+        return item
     }
 
     private static func upsert(_ item: RemoteItem, in db: Connection) throws {

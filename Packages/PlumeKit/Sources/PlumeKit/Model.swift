@@ -142,6 +142,8 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
     case maintenance
     case untrustedCertificate
     case notNextcloud
+    case notWebDAV
+    case unsupported
     case http(Int)
     case invalidResponse(String)
     /// The server refused, with its own explanation.
@@ -160,6 +162,8 @@ public enum PlumeError: LocalizedError, Equatable, Sendable {
         case .maintenance: String(localized: "The server is in maintenance mode. Try again in a few minutes.")
         case .untrustedCertificate: String(localized: "The server's security certificate isn't trusted. Plume only connects to servers with a certificate from a recognized authority, such as Let's Encrypt.")
         case .notNextcloud: String(localized: "No Nextcloud server answered at this address. Enter the address you use to open Nextcloud in a browser, for example cloud.example.com.")
+        case .notWebDAV: String(localized: "No WebDAV folder answered at this address. Enter the full address of the WebDAV folder, for example https://nas.example.com/webdav.")
+        case .unsupported: String(localized: "This server doesn't support this action.")
         case .http(let status): String(localized: "The server answered with an error (HTTP \(status)).")
         case .invalidResponse(let detail): String(localized: "Unexpected server response: \(detail)")
         case .refused(let message): message

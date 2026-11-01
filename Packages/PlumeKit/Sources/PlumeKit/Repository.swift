@@ -34,7 +34,9 @@ public final class Repository: Sendable {
     /// Lists a folder from the server and records it.
     @discardableResult
     public func refresh(_ path: RemotePath) async throws -> Listing {
-        let (folder, children) = try await client.list(path)
+        let (listedFolder, listedChildren) = try await client.list(path)
+        let folder = store.identified([listedFolder])[0]
+        let children = store.identified(listedChildren)
         let before = onChange == nil ? [:] : Dictionary(store.children(of: path).map { ($0.path, $0) },
                                                          uniquingKeysWith: { a, _ in a })
         let removed = store.replaceChildren(of: folder, with: children)
@@ -83,7 +85,8 @@ public final class Repository: Sendable {
 
     /// Lists a folder if its contents changed; returns its subfolders.
     private func visit(_ folder: RemotePath, force: Bool) async throws -> (listed: Bool, folders: [RemotePath]) {
-        if !force, let item = store.item(at: folder), store.listedEtag(of: folder) == item.etag {
+        if !force, client.account.isNextcloud, let item = store.item(at: folder),
+           store.listedEtag(of: folder) == item.etag {
             return (false, store.children(of: folder).filter(\.isDirectory).map(\.path))
         }
         do {
@@ -108,7 +111,8 @@ public final class Repository: Sendable {
             let old = before[child.path]
             if old != child { changes.updated.append(child) }
             // A folder known inside whose etag moved: something changed below.
-            if child.isDirectory, let listed = store.listedEtag(of: child.path), listed != child.etag {
+            if child.isDirectory, let listed = store.listedEtag(of: child.path),
+               listed != child.etag || !client.account.isNextcloud {
                 descend.append(child.path)
             }
         }
@@ -169,8 +173,7 @@ public final class Repository: Sendable {
     }
 
     private func syncOffline(_ path: RemotePath) async throws {
-        let item = try await client.item(at: path)
-        store.upsert(item)
+        let item = store.upsert(try await client.item(at: path))
         guard item.isDirectory else {
             try await keepOfflineCopy(of: item)
             return
@@ -204,9 +207,8 @@ public final class Repository: Sendable {
         for attempt in 1...100 {
             let candidate = attempt == 1 ? name : (ext.isEmpty ? "\(base) \(attempt)" : "\(base) \(attempt).\(ext)")
             do {
-                let item = try await client.upload(file, to: folder.appending(candidate), overwrite: false,
-                                                   progress: progress)
-                store.upsert(item)
+                let item = store.upsert(try await client.upload(file, to: folder.appending(candidate),
+                                                                overwrite: false, progress: progress))
                 notify(updated: [item])
                 return item
             } catch PlumeError.alreadyExists {
@@ -217,20 +219,18 @@ public final class Repository: Sendable {
     }
 
     public func createFolder(named name: String, in folder: RemotePath) async throws -> RemoteItem {
-        let item = try await client.createFolder(at: folder.appending(name))
-        store.upsert(item)
+        let item = store.upsert(try await client.createFolder(at: folder.appending(name)))
         notify(updated: [item])
         return item
     }
 
     public func rename(_ item: RemoteItem, to name: String) async throws -> RemoteItem {
         let parent = item.path.parent ?? .root
-        let moved = try await client.move(item.path, to: parent.appending(name))
-        let removed = store.remove(item.path)
-        store.upsert(moved)
-        // Same file id: Spotlight replaces the entry; what was below a
-        // renamed folder comes back with its next listing.
-        notify(updated: [moved], removed: removed.filter { $0.fileID != moved.fileID })
+        let destination = parent.appending(name)
+        let renamed = try await client.move(item.path, to: destination)
+        store.move(item.path, to: destination)
+        let moved = store.upsert(renamed)
+        notify(updated: store.subtree(of: destination))
         if store.pinnedPaths().contains(item.path) {
             store.unpin(item.path)
             store.pin(moved.path)
