@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Debug builds only: launch arguments that put the app in a given state,
 /// for screenshots and manual tests against a throwaway server
-/// (scripts/screenshots.sh). Release builds ignore them.
+/// (fastlane snapshot, scripts/mac-store-captures.sh). Release builds ignore them.
 ///
 ///   -PlumeInitialTab favorites       Mac: section shown at launch
 ///   -PlumeSearch "lisbon"            search typed at launch
