@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 @MainActor
 final class ScreenshotTests: XCTestCase {
@@ -14,9 +15,12 @@ final class ScreenshotTests: XCTestCase {
         let sample: String
     }
 
+    private var french: Bool {
+        Snapshot.deviceLanguage.hasPrefix("fr") || ProcessInfo.processInfo.environment["PLUME_SHOTS_LOCALE"] == "fr"
+    }
+
     private var locale: Locale {
-        let french = (Snapshot.deviceLanguage.hasPrefix("fr")) || ProcessInfo.processInfo.environment["PLUME_SHOTS_LOCALE"] == "fr"
-        return french
+        french
             ? Locale(user: "demo-fr", photos: "Photos/Espace", search: "electricite", found: "Facture d'électricité.pdf",
                      offline: "Voyages/Islande 2026", preview: "Documents/CV 2026.pdf", sample: "Plan du jardin.jpg")
             : Locale(user: "demo", photos: "Photos/Space", search: "resume", found: "Résumé 2026.pdf",
@@ -60,16 +64,31 @@ final class ScreenshotTests: XCTestCase {
 
         show(signedIn([]), waitFor: "Documents", seconds: 6)
         let files = XCUIApplication(bundleIdentifier: "com.apple.DocumentsApp")
-        files.activate()
-        if files.tabBars.buttons.element(boundBy: 2).waitForExistence(timeout: 10) {
-            files.tabBars.buttons.element(boundBy: 2).tap()
+        files.terminate()
+        files.launchArguments = french ? ["-AppleLanguages", "(fr-FR)", "-AppleLocale", "fr_FR"]
+                                       : ["-AppleLanguages", "(en-US)", "-AppleLocale", "en_US"]
+        files.launch()
+        let plume = files.staticTexts.matching(NSPredicate(format: "label == 'Plume'")).firstMatch
+        for _ in 0..<5 where !(plume.waitForExistence(timeout: 3) && plume.isHittable) {
+            let back = files.navigationBars.buttons.element(boundBy: 0)
+            if back.exists && back.isHittable {
+                back.tap()
+            } else if files.tabBars.buttons.count > 2 {
+                files.tabBars.buttons.element(boundBy: files.tabBars.buttons.count - 1).tap()
+            }
         }
-        let plume = files.cells.containing(.staticText, identifier: "Plume").firstMatch
-        if plume.waitForExistence(timeout: 15) {
+        if plume.exists && plume.isHittable {
             plume.tap()
+            let turnOn = files.buttons.matching(NSPredicate(format: "label IN %@", ["Turn On", "Activer"])).firstMatch
+            if turnOn.waitForExistence(timeout: 3) {
+                turnOn.tap()
+            }
             _ = files.staticTexts["Documents"].waitForExistence(timeout: 30)
             Thread.sleep(forTimeInterval: 4)
             snapshot("03-files-app")
+        } else if UIDevice.current.userInterfaceIdiom == .phone {
+            print(files.debugDescription)
+            XCTFail("Plume location not found in Files")
         }
         files.terminate()
 
