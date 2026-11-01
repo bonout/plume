@@ -59,7 +59,7 @@ final class FlowTests: XCTestCase {
     func testWhatIsNextcloud() {
         launch(["-PlumeResetAccount", "YES"])
         app.buttons["What is Nextcloud?"].tap()
-        XCTAssertTrue(app.links["Find a Nextcloud provider"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["Find a Nextcloud provider"].firstMatch.waitForExistence(timeout: 5))
         app.buttons["Done"].tap()
     }
 
@@ -94,7 +94,11 @@ final class FlowTests: XCTestCase {
         let name = "Shared \(Int(Date().timeIntervalSince1970)).txt"
         launch(DemoServer.signedIn(["-PlumeImportSample", name]))
         XCTAssertTrue(app.staticTexts["Save “\(name)”"].waitForExistence(timeout: 20))
-        app.buttons["Documents"].tap()
+        let target = app.staticTexts.matching(NSPredicate(format: "label == 'Documents'")).allElementsBoundByIndex
+            .first { $0.isHittable }
+        XCTAssertNotNil(target)
+        target?.tap()
+        XCTAssertTrue(app.navigationBars["Documents"].waitForExistence(timeout: 10))
         app.buttons["Save Here"].tap()
         cell("Documents").tap()
         XCTAssertTrue(cell(name).waitForExistence(timeout: 30))
@@ -115,6 +119,7 @@ final class FlowTests: XCTestCase {
             folder.press(forDuration: 1.2)
             app.buttons["Make Available Offline"].tap()
         }
+        XCTAssertTrue(app.images["Available offline"].waitForExistence(timeout: 20))
         folder.press(forDuration: 1.2)
         XCTAssertTrue(app.buttons["Remove from Offline"].waitForExistence(timeout: 10))
         app.buttons["Remove from Offline"].tap()
