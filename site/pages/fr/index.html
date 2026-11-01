@@ -1,4 +1,4 @@
-<!--{"title": "Plume : un client Nextcloud léger et rapide pour iPhone, iPad et Mac", "description": "Plume est une app Nextcloud gratuite et open source pour iPhone, iPad et Mac : navigation instantanée, recherche à la frappe, intégration au Finder et à Fichiers, fichiers hors ligne.", "schema": "app", "preload": "/media/mac.png"}-->
+<!--{"title": "Plume : un client Nextcloud léger et rapide pour iPhone, iPad et Mac", "description": "Plume est une app Nextcloud gratuite et open source pour iPhone, iPad et Mac : navigation instantanée, recherche à la frappe, intégration au Finder et à Fichiers, fichiers hors ligne.", "schema": "app", "preload": "/media/fr/mac-browse.jpg"}-->
 <header class="hero" id="top">
   <div class="wrap">
     <img class="hero-icon" src="/img/icon-180.png" alt="" width="96" height="96">
@@ -10,9 +10,15 @@
       <a class="button ghost" href="https://github.com/bonout/plume">Voir sur GitHub</a>
     </div>
     <p class="small"><!--release-->Version {{version}} · <!--/release-->Gratuit et open source · iOS 18, iPadOS 18, macOS 15 ou ultérieur · fonctionne avec n'importe quel serveur Nextcloud</p>
-    <div class="window reveal">
-      <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
-      <img src="/media/mac.png" alt="Plume sur Mac : un dossier de photos Nextcloud avec leurs vignettes, tailles et dates" width="1200" height="919" fetchpriority="high">
+    <div class="stage reveal">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="tilt">
+        <div class="window">
+          <div class="bar" aria-hidden="true"><i></i><i></i><i></i><b>Plume</b></div>
+          <img src="/media/fr/mac-browse.jpg" alt="Plume sur Mac : un dossier de photos de l'espace avec leurs vignettes" width="1600" height="1226" fetchpriority="high">
+        </div>
+        <div class="iphone"><video data-play muted loop playsinline preload="metadata" poster="/media/fr/iphone-tour.jpg" aria-label="Plume sur iPhone : un dossier s'ouvre aussitôt, puis la recherche « electricite » trouve Facture d'électricité.pdf, ouverte dans Coup d'œil"><source src="/media/fr/iphone-tour.mp4" type="video/mp4"></video></div>
+      </div>
     </div>
   </div>
 </header>
@@ -24,31 +30,36 @@
       <h2>Vos fichiers, sans attendre.</h2>
       <p class="sub">Une app SwiftUI native, sans aucune dépendance tierce. Elle parle les protocoles standard de Nextcloud (WebDAV et OCS) : elle fonctionne avec le serveur que vous avez déjà.</p>
     </div>
-    <div class="grid">
+    <div class="bento">
       <div class="card wide reveal">
         <div class="icon">⚡</div>
         <h3>Navigation instantanée</h3>
         <p>Plume garde une copie locale de l'arborescence : un dossier s'affiche tout de suite, puis se met à jour depuis le serveur en arrière-plan. Les vignettes viennent de votre serveur et sont gardées en cache.</p>
+        <div class="slice mac"><img src="/media/fr/mac-offline.jpg" alt="Plume sur Mac : un dossier de voyage disponible hors ligne" width="1600" height="1226" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">⌕</div>
         <h3>Tout retrouver</h3>
         <p>Chaque fichier et dossier du compte, à la frappe, sans tenir compte des majuscules ni des accents. Dans Spotlight aussi.</p>
+        <div class="slice"><img src="/media/fr/iphone-search.jpg" alt="Plume sur iPhone : les résultats de la recherche « electricite », accents ignorés" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">▤</div>
         <h3>Finder et Fichiers</h3>
         <p>Votre Nextcloud à côté d'iCloud Drive. Un fichier se télécharge quand vous l'ouvrez ; ce que vous modifiez ailleurs est renvoyé au serveur.</p>
+        <div class="slice"><img src="/media/fr/iphone-files-app.jpg" alt="Plume dans l'app Fichiers sur iPhone, à côté d'iCloud Drive" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">↑</div>
         <h3>Enregistrer depuis n'importe quelle app</h3>
         <p>Feuille de partage, « Enregistrer dans Fichiers », « Ouvrir dans… », glisser-déposer. Un envoi n'écrase jamais un fichier.</p>
+        <div class="slice"><img src="/media/fr/iphone-save.jpg" alt="Enregistrer une photo d'une autre app dans un dossier Nextcloud avec Plume" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">↓</div>
         <h3>Disponible hors ligne</h3>
         <p>Gardez un fichier ou un dossier entier sur l'appareil. Il reste à jour quand il change sur le serveur.</p>
+        <div class="slice"><img src="/media/fr/iphone-offline.jpg" alt="Plume sur iPhone : un dossier disponible hors ligne" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card full reveal">
         <div class="icon">◉</div>
@@ -82,10 +93,10 @@
       <h2>Un seul écran. Tous vos fichiers.</h2>
       <p class="sub" style="margin:0 auto">Sur iPhone, Plume tient en un écran : vos dossiers et fichiers, un champ de recherche, et les réglages derrière une roue dentée. Rien d'autre à apprendre.</p>
     </div>
-    <div class="phones reveal">
-      <div class="phone"><img src="/media/iphone-files.png" alt="Plume sur iPhone : les dossiers et fichiers d'un compte Nextcloud" width="590" height="1282" loading="lazy"></div>
-      <div class="phone"><img src="/media/iphone-search.png" alt="Plume sur iPhone : les résultats de la recherche « resume », accents ignorés" width="590" height="1282" loading="lazy"></div>
-      <div class="phone"><img src="/media/iphone-preview.png" alt="Plume sur iPhone : un PDF ouvert en Coup d'œil" width="590" height="1282" loading="lazy"></div>
+    <div class="fan reveal">
+      <div class="iphone"><img src="/media/fr/iphone-browse.jpg" alt="Plume sur iPhone : les dossiers d'un compte Nextcloud" width="660" height="1434" loading="lazy"></div>
+      <div class="iphone"><img src="/media/fr/iphone-quick-look.jpg" alt="Plume sur iPhone : un PDF ouvert avec Coup d'œil" width="660" height="1434" loading="lazy"></div>
+      <div class="iphone"><img src="/media/fr/iphone-files-app.jpg" alt="Plume dans l'app Fichiers sur iPhone, à côté d'iCloud Drive" width="660" height="1434" loading="lazy"></div>
     </div>
     <p class="sub" style="margin:36px auto 0; text-align:center"><a href="/fr/client-nextcloud-iphone/">Plume pour iPhone et iPad</a> · <a href="/fr/client-nextcloud-mac/">Plume pour Mac</a></p>
   </div>

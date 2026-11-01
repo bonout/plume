@@ -1,4 +1,4 @@
-<!--{"title": "Plume: a light, fast Nextcloud client for iPhone, iPad and Mac", "description": "Plume is a free, open source Nextcloud app for iPhone, iPad and Mac: instant browsing, search as you type, Finder and Files integration, offline files. Native SwiftUI.", "schema": "app", "preload": "/media/mac.png"}-->
+<!--{"title": "Plume: a light, fast Nextcloud client for iPhone, iPad and Mac", "description": "Plume is a free, open source Nextcloud app for iPhone, iPad and Mac: instant browsing, search as you type, Finder and Files integration, offline files. Native SwiftUI.", "schema": "app", "preload": "/media/en/mac-browse.jpg"}-->
 <header class="hero" id="top">
   <div class="wrap">
     <img class="hero-icon" src="/img/icon-180.png" alt="" width="96" height="96">
@@ -10,9 +10,15 @@
       <a class="button ghost" href="https://github.com/bonout/plume">View on GitHub</a>
     </div>
     <p class="small"><!--release-->Version {{version}} · <!--/release-->Free and open source · iOS 18, iPadOS 18, macOS 15 or later · works with any Nextcloud server</p>
-    <div class="window reveal">
-      <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
-      <img src="/media/mac.png" alt="Plume on Mac: a Nextcloud folder of photos with their thumbnails, sizes and dates" width="1200" height="919" fetchpriority="high">
+    <div class="stage reveal">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="tilt">
+        <div class="window">
+          <div class="bar" aria-hidden="true"><i></i><i></i><i></i><b>Plume</b></div>
+          <img src="/media/en/mac-browse.jpg" alt="Plume on Mac: a folder of space photos with their thumbnails" width="1600" height="1226" fetchpriority="high">
+        </div>
+        <div class="iphone"><video data-play muted loop playsinline preload="metadata" poster="/media/en/iphone-tour.jpg" aria-label="Plume on iPhone: a folder opens at once, then a search for “resume” finds Résumé 2026.pdf, which opens in Quick Look"><source src="/media/en/iphone-tour.mp4" type="video/mp4"></video></div>
+      </div>
     </div>
   </div>
 </header>
@@ -24,31 +30,36 @@
       <h2>Your files, without the wait.</h2>
       <p class="sub">A native SwiftUI app with no third-party dependencies. It speaks the standard Nextcloud protocols (WebDAV and OCS), so it works with the server you already have.</p>
     </div>
-    <div class="grid">
+    <div class="bento">
       <div class="card wide reveal">
         <div class="icon">⚡</div>
         <h3>Instant browsing</h3>
         <p>Plume keeps a local mirror of your folder tree: a folder opens right away, then refreshes from the server in the background. Thumbnails come from your server and are cached.</p>
+        <div class="slice mac"><img src="/media/en/mac-offline.jpg" alt="Plume on Mac: a travel folder kept available offline" width="1600" height="1226" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">⌕</div>
         <h3>Search everything</h3>
         <p>Every file and folder of your account, as you type, ignoring case and accents. Also in Spotlight.</p>
+        <div class="slice"><img src="/media/en/iphone-search.jpg" alt="Plume on iPhone: search results for “resume”, accents ignored" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">▤</div>
         <h3>Finder and Files</h3>
         <p>Your Nextcloud next to iCloud Drive. Files download when you open them; edits from other apps are uploaded.</p>
+        <div class="slice"><img src="/media/en/iphone-files-app.jpg" alt="Plume in the Files app on iPhone, next to iCloud Drive" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">↑</div>
         <h3>Save from any app</h3>
         <p>Share sheet, “Save to Files”, “Open in…”, drag and drop. Uploads never overwrite a file.</p>
+        <div class="slice"><img src="/media/en/iphone-save.jpg" alt="Saving a photo from another app into a Nextcloud folder with Plume" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card reveal">
         <div class="icon">↓</div>
         <h3>Available offline</h3>
         <p>Keep a file or a whole folder on the device. It stays up to date when it changes on the server.</p>
+        <div class="slice"><img src="/media/en/iphone-offline.jpg" alt="Plume on iPhone: a folder kept available offline" width="660" height="1434" loading="lazy"></div>
       </div>
       <div class="card full reveal">
         <div class="icon">◉</div>
@@ -82,10 +93,10 @@
       <h2>One screen. All your files.</h2>
       <p class="sub" style="margin:0 auto">On iPhone, Plume is your folders and files plus a search field, with the settings behind a gear button. Nothing else to learn.</p>
     </div>
-    <div class="phones reveal">
-      <div class="phone"><img src="/media/iphone-files.png" alt="Plume on iPhone: the folders and files of a Nextcloud account" width="590" height="1282" loading="lazy"></div>
-      <div class="phone"><img src="/media/iphone-search.png" alt="Plume on iPhone: search results for “resume”, accents ignored" width="590" height="1282" loading="lazy"></div>
-      <div class="phone"><img src="/media/iphone-preview.png" alt="Plume on iPhone: a PDF opened with Quick Look" width="590" height="1282" loading="lazy"></div>
+    <div class="fan reveal">
+      <div class="iphone"><img src="/media/en/iphone-browse.jpg" alt="Plume on iPhone: the folders of a Nextcloud account" width="660" height="1434" loading="lazy"></div>
+      <div class="iphone"><img src="/media/en/iphone-quick-look.jpg" alt="Plume on iPhone: a PDF opened with Quick Look" width="660" height="1434" loading="lazy"></div>
+      <div class="iphone"><img src="/media/en/iphone-files-app.jpg" alt="Plume in the Files app on iPhone, next to iCloud Drive" width="660" height="1434" loading="lazy"></div>
     </div>
     <p class="sub" style="margin:36px auto 0; text-align:center"><a href="/nextcloud-iphone/">Plume for iPhone and iPad</a> · <a href="/nextcloud-mac/">Plume for Mac</a></p>
   </div>

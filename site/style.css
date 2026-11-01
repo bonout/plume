@@ -244,3 +244,85 @@ td:first-child { color: var(--text); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+.stage { position: relative; width: min(1080px, 100%); margin: 64px auto 0; padding: 0 0 7%; container-type: inline-size; perspective: 1800px; }
+.stage .glow {
+  position: absolute; inset: -12% -18% -4%; z-index: -1; pointer-events: none; filter: blur(48px);
+  background:
+    radial-gradient(38% 46% at 28% 42%, rgba(56, 182, 240, 0.6), transparent 70%),
+    radial-gradient(34% 42% at 76% 58%, rgba(124, 92, 255, 0.5), transparent 70%),
+    radial-gradient(30% 30% at 55% 95%, rgba(51, 209, 122, 0.16), transparent 70%);
+  animation: drift 16s ease-in-out infinite alternate;
+}
+@keyframes drift { to { transform: translate3d(3%, -2%, 0) rotate(8deg) scale(1.06); } }
+.stage .tilt { transform-origin: 50% 0; transform: rotateX(calc(var(--tilt, 1) * 16deg)) scale(calc(1 - var(--tilt, 1) * 0.05)); transition: transform 0.1s linear; }
+.stage .window { width: 84%; margin: 0; border-radius: 1.4cqw; }
+.stage .window img { aspect-ratio: 1600 / 1040; object-fit: cover; object-position: top; }
+.window .bar { position: relative; }
+.window .bar b { position: absolute; left: 0; right: 0; text-align: center; font: 600 13px -apple-system, sans-serif; color: #6b6b72; }
+.stage .iphone { --w: 25cqw; position: absolute; right: 1.5%; bottom: 0; }
+.iphone {
+  --w: 280px; position: relative; width: var(--w); flex: none;
+  padding: calc(var(--w) * 0.034); border-radius: calc(var(--w) * 0.175);
+  background: linear-gradient(150deg, #5a5d66 0%, #1d1e23 18%, #0b0c10 55%, #34363e 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    inset 0 0 0 calc(var(--w) * 0.014) #050608,
+    0 calc(var(--w) * 0.2) calc(var(--w) * 0.35) calc(var(--w) * -0.08) rgba(0, 0, 0, 0.85),
+    0 calc(var(--w) * 0.1) calc(var(--w) * 0.3) calc(var(--w) * -0.1) rgba(47, 122, 232, 0.55);
+}
+.iphone::before, .iphone::after {
+  content: ""; position: absolute; width: calc(var(--w) * 0.012); border-radius: 2px; background: #2a2c33;
+}
+.iphone::before { left: calc(var(--w) * -0.01); top: 22%; height: 7%; box-shadow: 0 calc(var(--w) * 0.2) 0 #2a2c33; }
+.iphone::after { right: calc(var(--w) * -0.01); top: 27%; height: 12%; }
+.iphone > img, .iphone > video {
+  display: block; width: 100%; height: auto; aspect-ratio: 1320 / 2868; object-fit: cover; object-position: top;
+  border-radius: calc(var(--w) * 0.142); background: #f2f2f7;
+}
+
+.fan { display: flex; justify-content: center; align-items: flex-end; margin-top: 64px; padding-bottom: 20px; }
+.fan .iphone { --w: min(300px, 30vw); transition: transform 0.5s cubic-bezier(.2, .8, .2, 1); }
+.fan .iphone:nth-child(1) { transform: translate(14%, 6%) rotate(-7deg); z-index: 1; }
+.fan .iphone:nth-child(2) { z-index: 2; --w: min(330px, 34vw); }
+.fan .iphone:nth-child(3) { transform: translate(-14%, 6%) rotate(7deg); z-index: 1; }
+.fan:hover .iphone:nth-child(1) { transform: translate(4%, 2%) rotate(-4deg); }
+.fan:hover .iphone:nth-child(3) { transform: translate(-4%, 2%) rotate(4deg); }
+
+.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 48px; }
+.bento > * { min-width: 0; }
+.bento .card { grid-column: span 2; display: flex; flex-direction: column; }
+.bento .card.wide { grid-column: span 4; }
+.bento .card.half { grid-column: span 3; }
+.bento .card.full { grid-column: 1 / -1; }
+.card:hover { border-color: rgba(56, 182, 240, 0.35); }
+.card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: 0; transition: opacity 0.4s;
+  background: radial-gradient(60% 50% at 50% 100%, rgba(56, 182, 240, 0.14), transparent 70%);
+}
+.card:hover::after { opacity: 1; }
+.slice {
+  margin: 22px -26px -26px; height: 250px; overflow: hidden; position: relative; flex: none; margin-top: auto;
+  -webkit-mask-image: linear-gradient(#000 62%, transparent); mask-image: linear-gradient(#000 62%, transparent);
+}
+.card > p + .slice, .card > h3 + .slice { margin-top: 22px; }
+.slice img {
+  width: 74%; margin: 0 auto; border-radius: 26px 26px 0 0; box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.2), 0 20px 50px rgba(0, 0, 0, 0.5);
+  transition: transform 0.6s cubic-bezier(.2, .8, .2, 1);
+}
+.slice.mac img { width: 112%; max-width: none; margin-left: 6%; border-radius: 12px 0 0 0; }
+.card:hover .slice img { transform: translateY(-10px); }
+
+@media (max-width: 860px) {
+  .bento { grid-template-columns: 1fr; }
+  .bento .card, .bento .card.wide, .bento .card.half { grid-column: auto; }
+  .stage { padding-bottom: 12%; }
+  .stage .iphone { --w: 30cqw; right: 0; }
+  .fan .iphone:nth-child(1), .fan .iphone:nth-child(3) { display: none; }
+  .fan .iphone:nth-child(2) { --w: min(300px, 74vw); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage .tilt { transform: none; }
+}
+.prose .iphone { margin: 32px auto; }
+.prose .phones .iphone { margin: 0; }
