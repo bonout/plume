@@ -9,11 +9,13 @@ final class FileProviderItem: NSObject, NSFileProviderItem {
 
     /// Kept offline in Plume (the item or a folder above it).
     let isPinned: Bool
+    let nextcloud: Bool
 
-    init(_ remote: RemoteItem, parent: NSFileProviderItemIdentifier, isPinned: Bool = false) {
+    init(_ remote: RemoteItem, parent: NSFileProviderItemIdentifier, isPinned: Bool = false, nextcloud: Bool = true) {
         self.remote = remote
         parentItemIdentifier = parent
         self.isPinned = isPinned
+        self.nextcloud = nextcloud
     }
 
     var itemIdentifier: NSFileProviderItemIdentifier {
@@ -52,7 +54,7 @@ final class FileProviderItem: NSObject, NSFileProviderItem {
     }
 
     /// Read by the actions' activation rules (project.yml).
-    var userInfo: [AnyHashable: Any]? { ["favorite": remote.isFavorite] }
+    var userInfo: [AnyHashable: Any]? { ["favorite": remote.isFavorite, "nextcloud": nextcloud] }
 
     #if os(macOS)
     /// Items kept offline in Plume stay downloaded in Finder too.
