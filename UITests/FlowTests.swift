@@ -73,6 +73,19 @@ final class FlowTests: XCTestCase {
                       || app.navigationBars["Résumé 2026"].waitForExistence(timeout: 5))
     }
 
+    func testSortByName() {
+        launch(DemoServer.signedIn(["-PlumeInitialPath", "Documents"]))
+        let cover = cell("Cover letter.pdf"), resume = cell("Résumé 2026.pdf")
+        XCTAssertTrue(resume.waitForExistence(timeout: 20))
+        XCTAssertLessThan(cover.frame.minY, resume.frame.minY)
+        app.buttons["Sort"].firstMatch.tap()
+        app.buttons["Z to A"].tap()
+        XCTAssertTrue(resume.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(cover.frame.minY, resume.frame.minY)
+        app.buttons["Sort"].firstMatch.tap()
+        app.buttons["A to Z"].tap()
+    }
+
     func testBigFolderOpens() {
         launch(DemoServer.signedIn())
         XCTAssertTrue(cell("Archive").waitForExistence(timeout: 20))
