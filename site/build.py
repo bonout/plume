@@ -275,6 +275,6 @@ def build(out, version):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) not in (2, 3) or (len(sys.argv) == 3 and not re.fullmatch(r"\d+\.\d+\.\d+", sys.argv[2])):
-        sys.exit("usage: build.py <output folder> [version x.y.z]")
+    if len(sys.argv) not in (2, 3) or (len(sys.argv) == 3 and not re.fullmatch(r"\d+\.\d+(\.\d+)?", sys.argv[2])):
+        sys.exit("usage: build.py <output folder> [version x.y or x.y.z]")
     build(Path(sys.argv[1]), sys.argv[2] if len(sys.argv) == 3 else "")
