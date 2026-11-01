@@ -40,8 +40,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
               completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
         let progress = Progress(totalUnitCount: 1)
         perform { (repository: Repository) async throws -> FileProviderItem in
-            let remote = try await repository.client.item(at: try self.path(of: identifier, in: repository))
-            repository.store.upsert(remote)
+            let remote = repository.store.upsert(
+                try await repository.client.item(at: try self.path(of: identifier, in: repository)))
             return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, error) }
         return progress
@@ -53,8 +53,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         let progress = Progress(totalUnitCount: 100)
         let manager = NSFileProviderManager(for: domain)
         perform { (repository: Repository) async throws -> (URL, FileProviderItem) in
-            let remote = try await repository.client.item(at: try self.path(of: itemIdentifier, in: repository))
-            repository.store.upsert(remote)
+            let remote = repository.store.upsert(
+                try await repository.client.item(at: try self.path(of: itemIdentifier, in: repository)))
             guard let temporaryFolder = try manager?.temporaryDirectoryURL() else {
                 throw NSFileProviderError(.cannotSynchronize)
             }
@@ -85,7 +85,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             if Self.isExcluded(template.filename) { throw NSFileProviderError(.excludedFromSync) }
             let parent = try self.path(of: template.parentItemIdentifier, in: repository)
             let path = parent.appending(template.filename)
-            let remote: RemoteItem
+            var remote: RemoteItem
             if template.contentType == .folder {
                 do {
                     remote = try await repository.client.createFolder(at: path)
@@ -106,7 +106,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
                     remote = try await repository.client.item(at: path)
                 }
             }
-            repository.store.upsert(remote)
+            remote = repository.store.upsert(remote)
             return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, [], false, error) }
         return progress
@@ -127,7 +127,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
                 let destination = parent.appending(item.filename)
                 if destination != path {
                     _ = try await repository.client.move(path, to: destination)
-                    repository.store.remove(path)
+                    repository.store.move(path, to: destination)
                     path = destination
                 }
             }
@@ -137,8 +137,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
                     modified: item.contentModificationDate ?? nil, progress: progress)
             }
             // Other fields (tags, last used date, favorite rank) stay local.
-            let remote = try await repository.client.item(at: path)
-            repository.store.upsert(remote)
+            let remote = repository.store.upsert(try await repository.client.item(at: path))
             return self.providerItem(remote, in: repository)
         } done: { item, error in completionHandler(item, [], false, error) }
         return progress
@@ -189,7 +188,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
 
     func providerItem(_ remote: RemoteItem, in repository: Repository) -> FileProviderItem {
         FileProviderItem(remote, parent: parentIdentifier(of: remote, in: repository),
-                         isPinned: AppGroup.pinnedPaths.contains(remote.path))
+                         isPinned: AppGroup.pinnedPaths.contains(remote.path),
+                         nextcloud: repository.client.account.isNextcloud)
     }
 
     func parentIdentifier(of remote: RemoteItem, in repository: Repository) -> NSFileProviderItemIdentifier {
@@ -237,7 +237,9 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             case .notFound: return NSFileProviderError(.noSuchItem)
             case .alreadyExists: return NSFileProviderError(.filenameCollision)
             case .insufficientStorage: return NSFileProviderError(.insufficientQuota)
-            case .offline, .maintenance, .untrustedCertificate, .notNextcloud: return NSFileProviderError(.serverUnreachable)
+            case .offline, .maintenance, .untrustedCertificate, .notNextcloud, .notWebDAV:
+                return NSFileProviderError(.serverUnreachable)
+            case .unsupported: return NSError(domain: NSCocoaErrorDomain, code: NSFeatureUnsupportedError)
             case .forbidden: return CocoaError(.fileWriteNoPermission)
             case .conflict, .http, .invalidResponse, .refused: return NSFileProviderError(.cannotSynchronize)
             }

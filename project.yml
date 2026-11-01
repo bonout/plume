@@ -103,17 +103,18 @@ targetTemplates:
               NSExtensionFileProviderActionName: Copy Public Link
               NSExtensionFileProviderActionActivationRule: >-
                 SUBQUERY ( fileproviderItems, $fileproviderItem,
-                $fileproviderItem.itemIdentifier != "NSFileProviderRootContainerItemIdentifier" ).@count == 1
+                $fileproviderItem.itemIdentifier != "NSFileProviderRootContainerItemIdentifier"
+                AND $fileproviderItem.userInfo.nextcloud == YES ).@count == 1
             - NSExtensionFileProviderActionIdentifier: plume.favorite
               NSExtensionFileProviderActionName: Add to Favorites
               NSExtensionFileProviderActionActivationRule: >-
                 SUBQUERY ( fileproviderItems, $fileproviderItem,
-                $fileproviderItem.userInfo.favorite == NO ).@count > 0
+                $fileproviderItem.userInfo.favorite == NO AND $fileproviderItem.userInfo.nextcloud == YES ).@count > 0
             - NSExtensionFileProviderActionIdentifier: plume.unfavorite
               NSExtensionFileProviderActionName: Remove from Favorites
               NSExtensionFileProviderActionActivationRule: >-
                 SUBQUERY ( fileproviderItems, $fileproviderItem,
-                $fileproviderItem.userInfo.favorite == YES ).@count > 0
+                $fileproviderItem.userInfo.favorite == YES AND $fileproviderItem.userInfo.nextcloud == YES ).@count > 0
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(PLUME_BUNDLE_PREFIX).fileprovider

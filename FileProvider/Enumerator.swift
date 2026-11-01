@@ -59,7 +59,7 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
                     .map { NSFileProviderItemIdentifier($0.fileID) }
                 if !updated.isEmpty { observer.value.didUpdate(updated) }
                 if !removed.isEmpty { observer.value.didDeleteItems(withIdentifiers: removed) }
-                observer.value.finishEnumeratingChanges(upTo: Self.anchor(changes.etag), moreComing: false)
+                observer.value.finishEnumeratingChanges(upTo: syncAnchor(changes.etag), moreComing: false)
             } catch {
                 observer.value.finishEnumeratingWithError(FileProviderExtension.providerError(error))
             }
@@ -78,7 +78,7 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
 
     func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
         let etag = repository.store.listedEtag(of: folder ?? .root) ?? ""
-        completionHandler(Self.anchor(etag))
+        completionHandler(syncAnchor(etag))
     }
 
     static let pageSize = 500
@@ -87,7 +87,10 @@ final class Enumerator: NSObject, NSFileProviderEnumerator, @unchecked Sendable 
         Int(String(decoding: page.rawValue, as: UTF8.self)) ?? 0
     }
 
-    private static func anchor(_ etag: String) -> NSFileProviderSyncAnchor {
-        NSFileProviderSyncAnchor(Data(("etag:" + etag).utf8))
+    private func syncAnchor(_ etag: String) -> NSFileProviderSyncAnchor {
+        guard repository.client.account.isNextcloud else {
+            return NSFileProviderSyncAnchor(Data("time:\(Date().timeIntervalSince1970)".utf8))
+        }
+        return NSFileProviderSyncAnchor(Data(("etag:" + etag).utf8))
     }
 }
