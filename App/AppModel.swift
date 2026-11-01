@@ -52,6 +52,7 @@ final class AppModel {
 
     private let spotlight = SpotlightIndex()
     private var spotlightFeed: Task<Void, Never>?
+    private var spotlightCleanup: Task<Void, Never>?
     /// Push from the server and, on the Mac, the periodic sync.
     private var watchers: [Task<Void, Never>] = []
     private var syncing = false
@@ -128,7 +129,8 @@ final class AppModel {
         let (changes, feed) = AsyncStream.makeStream(of: Repository.Changes.self)
         repository = Repository(client: NextcloudClient(credentials: credentials), store: store,
                                 onChange: { feed.yield($0) })
-        spotlightFeed = Task { [spotlight] in
+        spotlightFeed = Task { [spotlight, spotlightCleanup] in
+            await spotlightCleanup?.value
             for await batch in changes { await spotlight.apply(batch) }
         }
         Task {
@@ -190,7 +192,7 @@ final class AppModel {
         }
         await FileProviderControl.removeAll()
         spotlightFeed?.cancel()
-        await spotlight.removeAll()
+        spotlightCleanup = Task { [spotlight] in await spotlight.removeAll() }
         AccountStore.remove()
         AppGroup.defaults.removeObject(forKey: "indexComplete")
         AppGroup.defaults.removeObject(forKey: "lastShareFolder")
@@ -225,6 +227,7 @@ final class AppModel {
         if (try? await repository.syncTree()) != nil {
             indexComplete = true
             AppGroup.defaults.set(true, forKey: "indexComplete")
+            await spotlightCleanup?.value
             if await !spotlight.isCurrent {
                 await spotlight.reindex(repository.store.subtree(of: .root))
             }
