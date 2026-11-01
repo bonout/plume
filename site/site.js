@@ -64,3 +64,18 @@ const observer = new IntersectionObserver((entries) => {
   }
 }, { threshold: 0.2 });
 document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+const tilt = document.querySelector(".stage .tilt");
+if (tilt && !reduced) {
+  const update = () => tilt.style.setProperty("--tilt", Math.max(0, 1 - scrollY / 420).toFixed(3));
+  addEventListener("scroll", update, { passive: true });
+  update();
+}
+
+for (const video of document.querySelectorAll("video[data-play]")) {
+  if (reduced) continue;
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) video.play().catch(() => {});
+    else video.pause();
+  }, { threshold: 0.3 }).observe(video);
+}

@@ -50,7 +50,7 @@ jobs:
           # README's), and published under /media.
           mkdir -p _site/media
           cp docs/media/icon.png _site/media/
-          cp docs/screenshots/*.png _site/media/
+          cp -R docs/screenshots/en docs/screenshots/fr _site/media/
           # Every local file a page names must be there.
           find _site -name index.html -exec grep -ho '"/[a-z][^"#]*\.[a-z0-9]*"' {} + | tr -d '"' | sort -u | while read -r file; do
             test -f "_site$file" || { echo "missing: $file"; exit 1; }
