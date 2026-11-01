@@ -14,6 +14,13 @@ struct LoginView: View {
     @State private var loginName = ""
     @State private var appPassword = ""
     @State private var showingHelp = false
+    @State private var kind = Account.Kind.nextcloud
+
+    private var serverURL: URL? {
+        kind == .webdav ? LoginFlow.webDAVURL(server) : LoginFlow.normalizedServerURL(server)
+    }
+
+    private var usesPassword: Bool { manual || kind == .webdav }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -24,14 +31,25 @@ struct LoginView: View {
                     .clipShape(.rect(cornerRadius: 22, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                 Text("Plume").font(.largeTitle.bold())
-                Text("A light client for your Nextcloud.").foregroundStyle(.secondary)
+                Text("A light client for Nextcloud and WebDAV.").foregroundStyle(.secondary)
             }
 
-            Text("Enter the address of your Nextcloud server to sign in.")
+            Picker("Server", selection: $kind) {
+                Text("Nextcloud").tag(Account.Kind.nextcloud)
+                Text("WebDAV").tag(Account.Kind.webdav)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(maxWidth: 360)
+            .disabled(waiting != nil)
+
+            Text(kind == .webdav ? "Enter the address of your WebDAV folder, your user name and your password."
+                                 : "Enter the address of your Nextcloud server to sign in.")
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
 
             VStack(spacing: 12) {
-                TextField("Server address", text: $server, prompt: Text("cloud.example.com"))
+                TextField("Server address", text: $server,
+                          prompt: Text(kind == .webdav ? "https://nas.example.com/webdav" : "cloud.example.com"))
                     .textContentType(.URL)
                     .autocorrectionDisabled()
                     #if os(iOS)
@@ -40,14 +58,14 @@ struct LoginView: View {
                     #endif
                     .onSubmit(signIn)
 
-                if manual {
-                    TextField("Login", text: $loginName)
+                if usesPassword {
+                    TextField(kind == .webdav ? "User name" : "Login", text: $loginName)
                         .textContentType(.username)
                         .autocorrectionDisabled()
                         #if os(iOS)
                         .textInputAutocapitalization(.never)
                         #endif
-                    SecureField("App password", text: $appPassword)
+                    SecureField(kind == .webdav ? "Password" : "App password", text: $appPassword)
                         .onSubmit(signIn)
                 }
             }
@@ -57,24 +75,26 @@ struct LoginView: View {
             if waiting != nil {
                 VStack(spacing: 10) {
                     ProgressView()
-                    Text(manual ? "Checking…" : "Grant access in your browser, then come back here.")
+                    Text(usesPassword ? "Checking…" : "Grant access in your browser, then come back here.")
                         .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     Button("Cancel") { cancel() }
                 }
             } else {
                 Button(action: signIn) {
-                    Text(manual ? "Sign In" : "Sign In with Browser").frame(maxWidth: 240)
+                    Text(usesPassword ? "Sign In" : "Sign In with Browser").frame(maxWidth: 240)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(LoginFlow.normalizedServerURL(server) == nil)
+                .disabled(serverURL == nil)
                 .keyboardShortcut(.defaultAction)
 
-                Button(manual ? "Sign in with the browser instead" : "Use an app password instead") {
-                    manual.toggle()
+                if kind == .nextcloud {
+                    Button(manual ? "Sign in with the browser instead" : "Use an app password instead") {
+                        manual.toggle()
+                    }
+                    .buttonStyle(.borderless)
+                    .font(.callout)
                 }
-                .buttonStyle(.borderless)
-                .font(.callout)
             }
 
             if let error {
@@ -103,12 +123,14 @@ struct LoginView: View {
     }
 
     private func signIn() {
-        guard waiting == nil, let url = LoginFlow.normalizedServerURL(server) else { return }
+        guard waiting == nil, let url = serverURL else { return }
         error = nil
         waiting = Task {
             do {
                 let credentials: Credentials
-                if manual {
+                if kind == .webdav {
+                    credentials = try await LoginFlow.signInWebDAV(server: url, user: loginName, password: appPassword)
+                } else if manual {
                     credentials = try await LoginFlow.complete(server: url, loginName: loginName, appPassword: appPassword)
                 } else {
                     let flow = try await LoginFlow.start(server: url)
@@ -117,6 +139,8 @@ struct LoginView: View {
                 }
                 try model.signIn(credentials)
             } catch is CancellationError {
+            } catch PlumeError.unauthorized where kind == .webdav {
+                self.error = String(localized: "Wrong user name or password.")
             } catch PlumeError.unauthorized where manual {
                 self.error = String(localized: "Wrong login or app password. With two-factor authentication, your account password won't work here: create an app password in Nextcloud under Settings → Security, or sign in with the browser.")
             } catch {

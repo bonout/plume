@@ -113,13 +113,19 @@ struct ItemList: View {
                systemImage: model.isPinned(item) ? "arrow.down.circle.fill" : "arrow.down.circle") {
             model.toggleOffline(item)
         }
-        Button(item.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-               systemImage: item.isFavorite ? "star.slash" : "star") {
-            model.perform { _ = try await $0.setFavorite(!item.isFavorite, for: item) }
+        if model.capabilities.favorites {
+            Button(item.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                   systemImage: item.isFavorite ? "star.slash" : "star") {
+                model.perform { _ = try await $0.setFavorite(!item.isFavorite, for: item) }
+            }
         }
         Divider()
-        Button("Copy Public Link", systemImage: "link") { model.copyLink(item) }
-        Button("Share Links and Access…", systemImage: "person.crop.circle.badge.plus") { sharing = item }
+        if model.capabilities.linksEnabled {
+            Button("Copy Public Link", systemImage: "link") { model.copyLink(item) }
+        }
+        if model.capabilities.sharing {
+            Button("Share Links and Access…", systemImage: "person.crop.circle.badge.plus") { sharing = item }
+        }
         if !item.isDirectory && model.capabilities.versions {
             Button("Versions…", systemImage: "clock.arrow.circlepath") { versions = item }
         }

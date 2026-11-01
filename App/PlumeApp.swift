@@ -202,14 +202,18 @@ struct MainView: View {
             Tab("Files", systemImage: "folder", value: AppModel.Section.files) {
                 BrowserStack(path: $model.path) { FolderView(path: .root) }
             }
-            Tab("Favorites", systemImage: "star", value: AppModel.Section.favorites) {
-                BrowserStack { FavoritesView() }
+            if model.capabilities.favorites {
+                Tab("Favorites", systemImage: "star", value: AppModel.Section.favorites) {
+                    BrowserStack { FavoritesView() }
+                }
             }
             Tab("Offline", systemImage: "arrow.down.circle", value: AppModel.Section.offline) {
                 BrowserStack { OfflineView() }
             }
-            Tab("Deleted Files", systemImage: "trash", value: AppModel.Section.trash) {
-                NavigationStack { TrashView() }
+            if model.capabilities.trash {
+                Tab("Deleted Files", systemImage: "trash", value: AppModel.Section.trash) {
+                    NavigationStack { TrashView() }
+                }
             }
         }
         .tabViewStyle(.sidebarAdaptable)

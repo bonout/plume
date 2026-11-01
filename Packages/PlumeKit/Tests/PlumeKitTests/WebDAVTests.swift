@@ -54,6 +54,7 @@ struct WebDAVTests {
             _ = try await LoginFlow.signInWebDAV(server: settings.url.appending(path: "missing-\(UUID().uuidString)"),
                                                  user: settings.user, password: settings.password)
         }
+        try await repository.client.delete(base)
     }
 
     @Test func browsesUploadsAndDownloads() async throws {

@@ -125,6 +125,7 @@ final class AppModel {
             return
         }
         self.credentials = credentials
+        capabilities = ServerCapabilities(account: credentials.account)
         // Every change the repository sees goes to Spotlight, in order.
         let (changes, feed) = AsyncStream.makeStream(of: Repository.Changes.self)
         repository = Repository(client: NextcloudClient(credentials: credentials), store: store,

@@ -731,6 +731,16 @@
         }
       }
     },
+    "No WebDAV folder answered at this address. Enter the full address of the WebDAV folder, for example https://nas.example.com/webdav.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun dossier WebDAV n’a répondu à cette adresse. Saisissez l’adresse complète du dossier WebDAV, par exemple https://nas.example.com/webdav."
+          }
+        }
+      }
+    },
     "No earlier versions.": {
       "localizations": {
         "fr": {
@@ -1487,6 +1497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cet élément n’existe plus sur le serveur."
+          }
+        }
+      }
+    },
+    "This server doesn't support this action.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce serveur ne prend pas en charge cette action."
           }
         }
       }

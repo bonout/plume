@@ -56,6 +56,38 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(message.waitForExistence(timeout: 20))
     }
 
+    func testWebDAVSignInAndBrowse() throws {
+        let address = ProcessInfo.processInfo.environment["PLUME_UITEST_WEBDAV"] ?? "http://127.0.0.1:8098"
+        let folder = "UI \(UUID().uuidString.prefix(6))"
+        let auth = "Basic " + Data("plume:plume-webdav-pass".utf8).base64EncodedString()
+        func send(_ method: String, _ path: String, body: Data? = nil) {
+            var request = URLRequest(url: URL(string: address)!.appending(path: path))
+            request.httpMethod = method
+            request.setValue(auth, forHTTPHeaderField: "Authorization")
+            request.httpBody = body
+            let done = DispatchSemaphore(value: 0)
+            URLSession.shared.dataTask(with: request) { _, _, _ in done.signal() }.resume()
+            done.wait()
+        }
+        send("MKCOL", folder)
+        send("PUT", folder + "/hello.txt", body: Data("hello".utf8))
+        addTeardownBlock { send("DELETE", folder) }
+        launch(["-PlumeResetAccount", "YES", "-PlumeServerField", address])
+        XCTAssertTrue(app.buttons["WebDAV"].waitForExistence(timeout: 10))
+        app.buttons["WebDAV"].tap()
+        app.textFields["User name"].tap()
+        app.textFields["User name"].typeText("plume")
+        app.secureTextFields["Password"].tap()
+        app.secureTextFields["Password"].typeText("plume-webdav-pass")
+        app.buttons["Sign In"].tap()
+        XCTAssertTrue(cell(folder).waitForExistence(timeout: 20))
+        let notNow = app.buttons.matching(NSPredicate(format: "label IN %@", ["Not Now", "Later", "Plus tard", "Pas maintenant"])).firstMatch
+        if notNow.waitForExistence(timeout: 3) { notNow.tap() }
+        XCTAssertFalse(app.buttons["Deleted Files"].exists)
+        cell(folder).tap()
+        XCTAssertTrue(cell("hello.txt").waitForExistence(timeout: 10))
+    }
+
     func testWhatIsNextcloud() {
         launch(["-PlumeResetAccount", "YES"])
         app.buttons["What is Nextcloud?"].tap()
