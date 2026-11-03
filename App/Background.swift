@@ -33,7 +33,7 @@ final class Background {
     /// Registers the launch handlers: before the app finishes launching.
     func register() {
         #if os(iOS)
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshID, using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshID, using: .main) { task in
             let box = UncheckedTask(task)
             Task { @MainActor in Background.shared.refresh(box.task) }
         }
@@ -64,7 +64,7 @@ final class Background {
             return
         }
         let work = Task { await model.sync() }
-        task.expirationHandler = { work.cancel() }
+        task.expirationHandler = { @Sendable in work.cancel() }
         Task {
             await work.value
             task.setTaskCompleted(success: !work.isCancelled)
@@ -122,7 +122,7 @@ final class Background {
     @available(iOS 26, *)
     private func registerUploads() -> String? {
         let identifier = uploadPrefix + UUID().uuidString
-        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
+        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: .main) { task in
             let box = UncheckedTask(task)
             Task { @MainActor in Background.shared.runUploads(box.task) }
         }
@@ -150,14 +150,15 @@ final class Background {
                 try? await Task.sleep(for: .milliseconds(500))
             }
         }
-        task.expirationHandler = { [weak self] in
+        let box = UncheckedTask(task)
+        task.expirationHandler = { @Sendable [weak self] in
             follow.cancel()
             // Unsent uploads stay in the outbox and go at the next sync.
             Task { @MainActor in
-                guard let self, self.uploadTask === task else { return }
+                guard let self, self.uploadTask === box.task else { return }
                 self.uploadTask = nil
                 self.uploadsSubmitted = false
-                task.setTaskCompleted(success: false)
+                box.task.setTaskCompleted(success: false)
             }
         }
     }
